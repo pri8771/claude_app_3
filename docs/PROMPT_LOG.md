@@ -393,3 +393,438 @@ When adding prompts:
 
 *This log is the single source of truth for all AI prompts used in this project.*
 *Last updated: 2026-06-27*
+
+
+---
+
+## Phase 1: Claude Code Implementation (ChatGPT-Generated Prompts)
+
+**Date Generated:** 2026-06-27
+**Source:** ChatGPT (iOS Game Ideas Collaboration chat)
+**Status:** All queued for Claude Code execution
+
+---
+
+### UNIVERSAL-PROMPT: Claude Code Rule Prompt
+**Date:** 2026-06-27 | **Phase:** Setup | **Tool:** Claude Code | **Status:** 📅 Queued
+
+**Paste this FIRST in Claude Code before starting implementation:**
+
+```
+You are working inside this GitHub repo. This project already has complete documentation: 9 PRDs, a project tracker, a bug tracker, and a prompt log.
+
+Your job is to implement the app from the documentation, not redesign it.
+
+Rules:
+1. Read the local documentation before coding.
+2. Treat the PRDs as the source of truth.
+3. If a decision is already specified in the docs, follow it.
+4. If a detail is missing, make the smallest production-quality decision that is consistent with the docs.
+5. Do not ask me for clarification unless implementation is truly blocked.
+6. Do not delete or rewrite the PRDs.
+7. Keep the project tracker updated as work is completed.
+8. Keep the bug tracker updated with discovered issues, fixed issues, and remaining issues.
+9. Append each major implementation prompt and outcome to the prompt log.
+10. Prioritize compiling, testable, production-oriented Swift code over mockups.
+11. Avoid placeholder-only features. If something is stubbed, it must be clearly isolated, documented, and safe.
+12. After each implementation phase, run the available build/tests or explain exactly why they could not be run.
+13. Keep changes scoped to the current phase.
+14. Prefer simple, maintainable architecture over clever abstractions.
+15. Do not claim something is done unless it is implemented and verified.
+
+Start by scanning the repo and summarizing:
+- the app name
+- target platform
+- key docs found
+- current implementation state
+- highest-priority next implementation step
+
+Then proceed with the requested phase.
+```
+
+---
+
+### FOLDLIGHT-PROMPT-001: Project Intake and Foundation
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E002 | **Status:** 📅 Queued
+
+```
+Implement Phase 1 for Foldlight.
+
+Before coding:
+1. Read all local PRDs and planning docs.
+2. Read the project tracker, bug tracker, and prompt log.
+3. Identify the intended app architecture, platform target, gameplay requirements, progression requirements, and MVP scope.
+4. Inspect the current codebase and determine whether an iOS project already exists.
+
+Implementation goal:
+Create or complete the production foundation for the Foldlight iOS app.
+
+Expected result:
+A compiling iOS app with a clean SwiftUI app shell, navigation structure, shared architecture, and placeholder screens wired for the major game areas.
+
+Implement:
+- App entry point
+- Main navigation flow
+- Home screen
+- Puzzle play screen placeholder
+- Daily puzzle entry point
+- Infinite mode entry point
+- World restoration/meta-progression entry point
+- Settings screen
+- Save/load service foundation
+- Lightweight dependency container or app state model
+- Shared design tokens where appropriate
+- Basic haptics service
+- Basic audio service stub
+- Basic analytics/event logging stub
+- Model folders/files organized for future gameplay implementation
+
+Technical requirements:
+- Use SwiftUI for app shell. Use SpriteKit only where gameplay rendering requires it.
+- Keep the code modular. No large gameplay logic in views.
+- Add unit-testable services where possible.
+- Use local persistence appropriate for MVP (Codable + file storage or UserDefaults).
+- No force unwraps. Clean Architecture + MVVM. async/await. @MainActor on ViewModels. Sendable conformance. iOS 17.0 minimum. No third-party dependencies.
+
+Acceptance criteria:
+- App builds successfully.
+- User can navigate between Home, Play, Daily, Infinite, Restoration, and Settings.
+- Save/load service has a real implementation.
+- No hard crashes on launch or navigation.
+- Project tracker updated. Bug tracker updated. Prompt log updated.
+```
+
+---
+
+### FOLDLIGHT-PROMPT-002: Core Puzzle Engine
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E004 | **Status:** 📅 Queued
+
+```
+Implement Phase 2 for Foldlight: the core puzzle engine.
+
+Before coding:
+1. Re-read the gameplay, folding, tile, procedural generation, and MVP PRDs.
+2. Inspect the current foundation from Phase 1.
+3. Do not redesign the mechanic. Implement the documented Foldlight rules.
+
+Implementation goal:
+Build a deterministic, testable puzzle engine independent of UI.
+
+Implement core models:
+- Board, BoardCoordinate, Tile, TileType
+- TileLayer or overlap representation
+- FoldDirection, FoldLine/FoldRegion/FoldAction
+- PuzzleState, PuzzleGoal, PuzzleResult
+- MoveHistory / Undo state
+
+Implement mechanics:
+- Represent a rectangular puzzle board
+- Support tile placement and lookup
+- Support legal fold detection
+- Apply a fold action to a region of the board
+- Correctly map source coordinates to destination coordinates
+- Support overlapping tiles
+- Resolve tile combinations using documented rules:
+  * light source + goal crystal = win
+  * path + path = connected path
+  * light + mirror = reflected beam (90 degrees)
+  * light + shadow = revealed path
+  * key + lock = opened gate
+  * seed + water = grown bridge
+  * fire + ice = steam blocker
+  * monster + cage = captured monster
+- Support reset and undo
+- Support serialization/deserialization
+
+Implement light/beam simulation:
+- Trace beam from source
+- Respect blockers
+- Reflect from mirrors
+- Detect goal completion
+- Prevent infinite loops safely
+- Return rich result for UI animation
+
+Testing:
+Add unit tests for:
+- board initialization, coordinate mapping
+- legal and illegal folds, fold application
+- tile overlap behavior, tile combination behavior
+- undo/reset
+- light reaches goal, light blocked, mirror reflection
+- deterministic replay of fold actions
+
+Acceptance criteria:
+- Puzzle engine compiles independently of UI.
+- Unit tests pass.
+- A simple hardcoded puzzle can be solved through engine calls.
+- Engine has no SpriteKit or SwiftUI dependency.
+- Project tracker, bug tracker, and prompt log updated.
+```
+
+---
+
+### FOLDLIGHT-PROMPT-003: Playable Puzzle Board UI
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E006 | **Status:** 📅 Queued
+
+```
+Implement Phase 3 for Foldlight: playable puzzle board UI.
+
+Before coding:
+1. Read the UI/UX, gameplay, tutorial, and visual PRDs.
+2. Inspect the puzzle engine from Phase 2.
+3. Preserve engine/UI separation.
+
+Implementation goal:
+Turn the puzzle engine into an actual playable board screen.
+
+Implement:
+- SpriteKit-based board renderer
+- Visual rendering for all MVP tile types (7 tile types, each with 3 visual states)
+- Board grid rendering
+- Fold gesture input (swipe/tap to select fold line)
+- Fold preview before release (show destination region)
+- Legal/illegal fold feedback
+- Apply fold on gesture completion
+- Undo button, Reset button
+- Goal/completion detection
+- Win animation (light beam explosion + world glow)
+- Haptics for fold, invalid fold, undo, and completion
+- Sound hooks (ASMR fold sounds)
+- Debug level loader for hardcoded test puzzle
+- UI state for move count and puzzle status
+- Safe layout for iPhone portrait mode
+- 60fps on iPhone 12+, 120fps on ProMotion
+
+Important:
+The folding interaction must feel like the core game. Player should:
+- Understand what region is being folded
+- See where it will land (fold preview)
+- See tile overlaps or transformations
+- See invalid folds clearly but not annoyingly
+
+Acceptance criteria:
+- User can open Play screen and solve at least one hardcoded puzzle.
+- Fold gestures work on device/simulator.
+- Undo and reset work. Completion is detected and shown.
+- No gameplay logic is trapped inside the rendering layer.
+- App builds. Tests still pass. Trackers updated.
+```
+
+---
+
+### FOLDLIGHT-PROMPT-004: Procedural Level Generation
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E005 | **Status:** 📅 Queued
+
+```
+Implement Phase 4 for Foldlight: procedural solvable level generation.
+
+Before coding:
+1. Read all procedural generation, infinite mode, daily puzzle, difficulty, and validation PRDs.
+2. Inspect the existing puzzle engine and playable UI.
+3. The generator must create solvable levels and must be deterministic from a seed.
+
+Implementation goal:
+Build the MVP procedural puzzle generator for Foldlight.
+
+Implement:
+- Seeded random number generator
+- PuzzleGenerationConfig
+- PuzzleGenerator (async, background generation)
+- PuzzleValidator
+- Difficulty scoring model
+- GeneratedPuzzle metadata
+
+Generation approach (reverse-construction):
+1. Start with a solved board (LightSource beam already reaches GoalCrystal)
+2. Apply N random valid reverse folds to 'unsolve' it (N = difficulty level)
+3. Validate puzzle has at least one solution
+4. Classify difficulty: Easy (≤3 folds), Medium (4-6), Hard (7-9), Expert (10+)
+5. Reject boring/impossible/degenerate puzzles
+
+Integrate:
+- Infinite mode requests generated level by difficulty/seed
+- Daily puzzle uses deterministic date-based seed (same puzzle for same date)
+- Generated puzzle loads into existing play UI
+
+Testing:
+Add tests for:
+- deterministic generation from same seed
+- generated puzzle validity
+- daily seed stability across dates
+- difficulty config boundaries
+- failed candidate rejection
+- validator correctness
+
+Performance requirement: Generate valid puzzle within 500ms
+
+Acceptance criteria:
+- Infinite mode produces playable generated puzzles.
+- Daily puzzle produces same puzzle for same date seed.
+- Generated puzzles validated before shown.
+- App builds. Tests pass. Trackers updated.
+```
+
+---
+
+### FOLDLIGHT-PROMPT-005: Meta-Progression and World Restoration
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E007 | **Status:** 📅 Queued
+
+```
+Implement Phase 5 for Foldlight: meta-progression and world restoration.
+
+Before coding:
+1. Read the progression, world restoration, economy, retention, and save-system PRDs.
+2. Inspect current gameplay completion flow and persistence layer.
+
+Implementation goal:
+Add the progression loop that connects solved puzzles to restoring the Foldlight world.
+
+Implement:
+- PlayerProgress model (SwiftData @Model)
+- Light Fragments currency
+- Puzzle completion rewards (difficulty-scaled)
+- RestorationNode model for each of 10 biomes
+- World Restoration screen (world map with 10 biomes)
+- Spend Light Fragments to restore world nodes
+- Permanent unlock state persistence
+- Completion summary screen after puzzle solve
+- Streak/daily reward support
+- Biome unlock gates
+
+Economy values (from docs):
+- Easy puzzle: 5-10 Light Fragments
+- Medium: 15-25 Light Fragments
+- Hard: 35-50 Light Fragments
+- Expert: 75-100 Light Fragments
+- Daily challenge: 2x reward
+
+Integrate:
+- Solving puzzle grants rewards (persisted)
+- Restoration purchases persist
+- Restoration unlocks affect available biomes/generator configs
+- UI communicates next goal clearly
+
+Acceptance criteria:
+- Player can solve puzzle, earn Light Fragments, spend in restoration.
+- Progress persists across app relaunch.
+- Restoration screen is functional (not static mockup).
+- Economy values come from central config.
+- App builds. Tests pass. Trackers updated.
+```
+
+---
+
+### FOLDLIGHT-PROMPT-006: Tutorial, Hints, and Polish
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E007 | **Status:** 📅 Queued
+
+```
+Implement Phase 6 for Foldlight: onboarding, hints, and gameplay polish.
+
+Implement:
+- First-run onboarding flow (3-5 tutorial puzzles)
+- Tutorial puzzle sequence using controlled handcrafted puzzles
+- Step-by-step instruction overlays explaining fold mechanic
+- Gesture teaching for folding interaction
+- Explanation of all 7 tile combination types
+- Explanation of light/goal behavior
+- Hint system (next best fold, from solver)
+- Hint UI and hint consumption tracking
+- Move feedback improvements
+- Better completion screen (world restoration reveal)
+- Improved invalid action feedback
+- Accessibility labels for all interactive elements
+- Reduced motion support
+- Sound/haptics settings toggles
+- Visual polish: board, tile states, fold preview, completion animation
+
+Acceptance criteria:
+- New player can learn core mechanic without external docs.
+- Tutorial puzzles are playable and complete.
+- Hint system works for generated/handcrafted puzzles.
+- Settings toggles work and persist.
+- App builds. Tests pass. Trackers updated.
+```
+
+---
+
+### FOLDLIGHT-PROMPT-007: Production Readiness
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E011 | **Status:** 📅 Queued
+
+```
+Implement Phase 7 for Foldlight: production readiness.
+
+Implement or finalize:
+- App icon and launch screen
+- Error-safe persistence with versioned save data
+- StoreKit 2 configuration (cosmetics: board skins, tile themes)
+- Product IDs: com.foldlight.lux_pack_v1 ($2.99), com.foldlight.crystal_pack_v1 ($1.99), com.foldlight.hints_5 ($0.99), com.foldlight.pass_monthly ($4.99/mo), com.foldlight.infinite_unlock ($7.99)
+- PurchaseManager implementation (StoreKit 2 async)
+- Game Center achievements (200 achievements)
+- Leaderboards (daily, all-time)
+- Analytics event tracking
+- Performance cleanup (60fps sustained, <80MB RAM)
+- Device size checks (iPhone 12-16 matrix)
+- Accessibility pass (VoiceOver support)
+- Remove dead code and debug-only UI
+- Ensure all config values are centralized
+- README run instructions
+
+Verification flow:
+Home → Tutorial → Puzzle → Complete → Rewards → Restoration → Infinite → Daily → Settings → Shop → Purchase
+
+Acceptance criteria:
+- App builds cleanly. Tests pass.
+- MVP user flow works end-to-end.
+- StoreKit 2 sandbox flows verified.
+- Project tracker, bug tracker, prompt log all updated with final audit.
+```
+
+---
+
+### FOLDLIGHT-AUDIT: Final Repo Completion Audit
+**Date:** 2026-06-27 | **Phase:** QA | **Tool:** Claude Code | **Status:** 📅 Queued
+
+```
+Perform a full implementation audit for this repo.
+
+Tasks:
+1. Read all PRDs.
+2. Read the project tracker.
+3. Read the bug tracker.
+4. Read the prompt log.
+5. Inspect the current codebase.
+6. Compare implemented features against documented MVP requirements.
+7. Build the app.
+8. Run the test suite.
+9. Identify missing, incomplete, broken, or placeholder-only features.
+10. Fix any small or moderate issues you can safely fix now.
+11. Do not start major redesigns.
+12. Update the project tracker, bug tracker, and prompt log.
+
+Return:
+- Build result
+- Test result
+- MVP completeness percentage estimate
+- Features fully implemented
+- Features partially implemented
+- Known bugs
+- Risks before App Store submission
+- Recommended next implementation prompt, if any
+```
+
+---
+
+## Prompt Statistics (Updated)
+
+| Phase | Total | Used | Queued |
+|-------|-------|------|--------|
+| Ideation (ChatGPT) | 2 | 2 | 0 |
+| Architecture (ChatGPT) | 2 | 0 | 2 |
+| Claude Code Universal | 1 | 0 | 1 |
+| Claude Code Implementation | 7 | 0 | 7 |
+| Claude Code Audit | 1 | 0 | 1 |
+| **Total** | **13** | **2** | **11** |
+
+---
+
+*Last updated: 2026-06-27 — ChatGPT implementation prompts added*
