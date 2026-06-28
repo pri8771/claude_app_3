@@ -39,6 +39,7 @@ struct DailyView: View {
                         systemImage: "play.fill"
                     ) {
                         environment.haptics.play(.selection)
+                        environment.pendingGameRequest = .daily
                         router.push(.play)
                     }
 

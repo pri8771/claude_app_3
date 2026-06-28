@@ -19,7 +19,7 @@ final class FoldGestureInterpreterTests: XCTestCase {
     }
 
     func testDragUpFromBottomRowFoldsBottomOntoTop() {
-        // Grab the bottom row and pull up → solves SamplePuzzles.firstFold.
+        // Grab the bottom row and pull up → solves PuzzleFixtures.firstFold.
         let gesture = FoldGesture(startCell: BoardCoordinate(row: 1, column: 1), dx: 0, dyDown: -40)
         XCTAssertEqual(interpret(gesture), Fold(direction: .bottomOntoTop, position: 0))
     }
@@ -54,7 +54,7 @@ final class FoldGestureInterpreterTests: XCTestCase {
     func testGeneratedFoldIsLegalAndSolvesSample() throws {
         let gesture = FoldGesture(startCell: BoardCoordinate(row: 1, column: 1), dx: 0, dyDown: -40)
         let fold = try XCTUnwrap(interpret(gesture))
-        var state = PuzzleState(puzzle: SamplePuzzles.firstFold)
+        var state = PuzzleState(puzzle: PuzzleFixtures.firstFold)
         XCTAssertTrue(state.isLegal(fold))
         XCTAssertTrue(state.apply(fold))
         XCTAssertTrue(state.isSolved)

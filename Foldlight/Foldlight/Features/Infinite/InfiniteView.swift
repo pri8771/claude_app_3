@@ -38,6 +38,7 @@ struct InfiniteView: View {
 
                     PrimaryButton("Generate Puzzle", systemImage: "infinity") {
                         environment.haptics.play(.selection)
+                        environment.pendingGameRequest = .infinite(viewModel.selectedDifficulty)
                         router.push(.play)
                     }
 

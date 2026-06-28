@@ -21,23 +21,36 @@ final class AppEnvironment: ObservableObject {
     let audio: AudioPlaying
     let analytics: AnalyticsTracking
 
+    // MARK: Level generation
+    let generator: PuzzleGenerator
+    let dailyService: DailyPuzzleService
+    let levelRepository: LevelRepository
+
     // MARK: Published state
     @Published private(set) var profile: PlayerProfile
     @Published private(set) var settings: GameSettings
     @Published private(set) var isReady = false
+    /// The puzzle source the Play screen should load next.
+    @Published var pendingGameRequest: GameRequest = .infinite(.easy)
 
     init(
         preferences: PreferencesStore,
         saveService: SaveService,
         haptics: Haptics,
         audio: AudioPlaying,
-        analytics: AnalyticsTracking
+        analytics: AnalyticsTracking,
+        generator: PuzzleGenerator,
+        dailyService: DailyPuzzleService,
+        levelRepository: LevelRepository
     ) {
         self.preferences = preferences
         self.saveService = saveService
         self.haptics = haptics
         self.audio = audio
         self.analytics = analytics
+        self.generator = generator
+        self.dailyService = dailyService
+        self.levelRepository = levelRepository
         self.settings = preferences.loadSettings()
         self.profile = .new
     }
@@ -46,6 +59,8 @@ final class AppEnvironment: ObservableObject {
     static func live() -> AppEnvironment {
         let preferences = PreferencesStore()
         let settings = preferences.loadSettings()
+        let generator = PuzzleGenerator()
+        let baseSeed = UInt64(bitPattern: Int64(preferences.launchCount)) &* 0x9E37_79B9_7F4A_7C15 &+ 0xF01D
         return AppEnvironment(
             preferences: preferences,
             saveService: FileSaveService(),
@@ -54,7 +69,10 @@ final class AppEnvironment: ObservableObject {
                 soundEffectsEnabled: settings.soundEffectsEnabled,
                 musicEnabled: settings.musicEnabled
             ),
-            analytics: AnalyticsService()
+            analytics: AnalyticsService(),
+            generator: generator,
+            dailyService: DailyPuzzleService(generator: generator),
+            levelRepository: LevelRepository(generator: generator, baseSeed: baseSeed)
         )
     }
 

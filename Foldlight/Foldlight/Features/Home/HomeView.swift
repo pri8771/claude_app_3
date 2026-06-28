@@ -87,6 +87,10 @@ struct HomeView: View {
                     tint: FoldlightColor.primary
                 ) {
                     environment.haptics.play(.selection)
+                    if route == .play {
+                        // The Home "Play" card jumps straight into an Infinite session.
+                        environment.pendingGameRequest = .infinite(.easy)
+                    }
                     router.push(route)
                 }
             }

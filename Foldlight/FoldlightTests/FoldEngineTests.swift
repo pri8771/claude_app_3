@@ -55,8 +55,8 @@ final class FoldEngineTests: XCTestCase {
     // MARK: Application
 
     func testApplyFirstFoldProducesSolvedBoard() throws {
-        let board = SamplePuzzles.firstFold.initialBoard
-        let fold = try XCTUnwrap(SamplePuzzles.firstFoldSolution.first)
+        let board = PuzzleFixtures.firstFold.initialBoard
+        let fold = try XCTUnwrap(PuzzleFixtures.firstFoldSolution.first)
         let outcome = try XCTUnwrap(FoldEngine.apply(fold, to: board))
 
         XCTAssertEqual(outcome.board.height, 1)
@@ -68,7 +68,7 @@ final class FoldEngineTests: XCTestCase {
     }
 
     func testApplyIllegalFoldReturnsNil() {
-        let board = SamplePuzzles.firstFold.initialBoard
+        let board = PuzzleFixtures.firstFold.initialBoard
         XCTAssertNil(FoldEngine.apply(Fold(direction: .bottomOntoTop, position: 5), to: board))
     }
 
@@ -109,8 +109,8 @@ final class FoldEngineTests: XCTestCase {
     }
 
     func testReplayIsDeterministic() {
-        let board = SamplePuzzles.firstFold.initialBoard
-        let folds = SamplePuzzles.firstFoldSolution
+        let board = PuzzleFixtures.firstFold.initialBoard
+        let folds = PuzzleFixtures.firstFoldSolution
         let first = FoldEngine.replay(folds, on: board)
         let second = FoldEngine.replay(folds, on: board)
         XCTAssertEqual(first, second)

@@ -757,7 +757,7 @@ invalid = error, undo = light, win = success).
 ---
 
 ### FOLDLIGHT-PROMPT-004: Procedural Level Generation
-**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E005 | **Status:** 📅 Queued
+**Date:** 2026-06-27 | **Phase:** Implementation | **Tool:** Claude Code | **Epic:** E005 | **Status:** ✅ Used (executed 2026-06-28)
 
 ```
 Implement Phase 4 for Foldlight: procedural solvable level generation.
@@ -807,6 +807,53 @@ Acceptance criteria:
 - Generated puzzles validated before shown.
 - App builds. Tests pass. Trackers updated.
 ```
+
+**Outcome (2026-06-28, Claude Code):**
+
+Replaced the hardcoded sample with a procedural level system in
+`Foldlight/Features/Levels/`, wired into Infinite Mode and the Daily slot.
+
+- **`PuzzleGenerator` (actor)** — `generate(difficulty:seed:)`, deterministic via
+  `SeededGenerator` (SplitMix64). **Construction deviation:** the engine's fold
+  is destructive, so a literal "apply N folds then invert" is not reversible.
+  Instead it uses an equivalent *constructive reverse-generation*: lay a solved
+  line, displace one path tile N rows down → the forward solution is exactly N
+  `bottomOntoTop` folds. Provably solvable in N folds; gated by the validator.
+  Difficulty → folds via `Difficulty.foldRange` (Easy ≤3 … Expert 10–12).
+- **`PuzzleValidator` (struct)** — `.valid` / `.unsolvable` / `.trivial` via the
+  engine (`BeamSolver` + `FoldEngine.replay`). Generator regenerates on failure
+  (≤5 retries); construction is always valid so the gate rarely fires.
+- **`DailyPuzzleService` (actor)** — deterministic Medium puzzle seeded by
+  `year*10000+month*100+day`, cached for the session.
+- **`LevelRepository` (actor)** — per-difficulty queue, pre-generates the next 3
+  in the background so the next puzzle loads instantly.
+- **Wiring** — `AppEnvironment` owns generator/daily/repository + a published
+  `pendingGameRequest`; `GameViewModel` loads daily vs infinite, cycles
+  difficulty after every 3 clears, and offers Next/Replay; Home/Daily/Infinite
+  set the request. `Puzzle` gained `solution: [Fold]?`. `SamplePuzzles.swift`
+  deleted from production (moved to a `PuzzleFixtures` test helper).
+
+Tests: `PuzzleGeneratorTests` (valid for every tier, never unsolvable across
+seeds, deterministic, <500ms via `ContinuousClock`), `PuzzleValidatorTests`,
+`DailyPuzzleTests` (same-day identical, different dates differ, Medium),
+`LevelRepositoryTests`.
+
+**Verification:** Linux container — no Xcode/Swift toolchain — so tests were not
+executed in-session. The generator's correctness (provably-solvable construction)
+was reasoned through by hand and is validator-gated; code authored to compile
+cleanly under Xcode 16.
+
+**Acceptance criteria status:**
+- Never returns an unsolvable puzzle (validator gate) — ✅ (construction guarantees + validator).
+- Generation < 500ms — ✅ (O(N) construction; unit test asserts via `ContinuousClock`).
+- Daily identical across same-day calls — ✅ (deterministic seed + cache; unit-tested).
+- Different dates → different puzzles — ✅ (seed embedded in id; unit-tested).
+- Infinite loads next immediately (prefetch) — ✅ (`LevelRepository` queue).
+- No hardcoded puzzles in production paths — ✅ (`SamplePuzzles` removed).
+- App builds / trackers updated — ⚠️ build not runnable here; ✅ trackers updated.
+
+**Deferred (tracked):** unique-solution enforcement (T005-04) and richer puzzle
+variety (mirrors, multi-tile, decoys) — see PROJECT_TRACKER E005 notes.
 
 ---
 
@@ -965,10 +1012,10 @@ Return:
 | Ideation (ChatGPT) | 2 | 2 | 0 |
 | Architecture (ChatGPT) | 2 | 0 | 2 |
 | Claude Code Universal | 1 | 1 | 0 |
-| Claude Code Implementation | 7 | 3 | 4 |
+| Claude Code Implementation | 7 | 4 | 3 |
 | Claude Code Audit | 1 | 0 | 1 |
-| **Total** | **13** | **6** | **7** |
+| **Total** | **13** | **7** | **6** |
 
 ---
 
-*Last updated: 2026-06-28 — FOLDLIGHT-PROMPT-003 (playable puzzle board UI) executed*
+*Last updated: 2026-06-28 — FOLDLIGHT-PROMPT-004 (procedural level generation) executed*

@@ -20,7 +20,7 @@ final class BoardTests: XCTestCase {
     }
 
     func testTilesBuilderPlacesTiles() {
-        let board = SamplePuzzles.firstFold.initialBoard
+        let board = PuzzleFixtures.firstFold.initialBoard
         XCTAssertEqual(board.height, 2)
         XCTAssertEqual(board.width, 3)
         XCTAssertEqual(board.effectiveType(at: BoardCoordinate(row: 0, column: 0)), .lightSource)
@@ -39,7 +39,7 @@ final class BoardTests: XCTestCase {
     }
 
     func testCoordinateOfFirstFindsTile() {
-        let board = SamplePuzzles.firstFold.initialBoard
+        let board = PuzzleFixtures.firstFold.initialBoard
         XCTAssertEqual(board.coordinate(ofFirst: .lightSource), BoardCoordinate(row: 0, column: 0))
         XCTAssertEqual(board.coordinate(ofFirst: .goalCrystal), BoardCoordinate(row: 0, column: 2))
         XCTAssertNil(board.coordinate(ofFirst: .blocker))
@@ -68,7 +68,7 @@ final class BoardTests: XCTestCase {
     }
 
     func testCodableRoundTrip() throws {
-        let board = SamplePuzzles.firstFold.initialBoard
+        let board = PuzzleFixtures.firstFold.initialBoard
         let data = try JSONEncoder().encode(board)
         let decoded = try JSONDecoder().decode(Board.self, from: data)
         XCTAssertEqual(decoded, board)

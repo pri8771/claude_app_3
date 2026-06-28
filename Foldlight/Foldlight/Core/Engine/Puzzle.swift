@@ -23,13 +23,24 @@ struct Puzzle: Equatable, Codable, Sendable, Identifiable {
     let goal: PuzzleGoal
     /// The optimal (par) number of folds, when known — used for star scoring.
     let parFolds: Int?
+    /// A known solving fold sequence (e.g. from the generator), used for
+    /// validation and future hints. `nil` when unknown.
+    let solution: [Fold]?
 
-    init(id: String, title: String, initialBoard: Board, goal: PuzzleGoal = .guideLightToGoal, parFolds: Int? = nil) {
+    init(
+        id: String,
+        title: String,
+        initialBoard: Board,
+        goal: PuzzleGoal = .guideLightToGoal,
+        parFolds: Int? = nil,
+        solution: [Fold]? = nil
+    ) {
         self.id = id
         self.title = title
         self.initialBoard = initialBoard
         self.goal = goal
         self.parFolds = parFolds
+        self.solution = solution
     }
 }
 

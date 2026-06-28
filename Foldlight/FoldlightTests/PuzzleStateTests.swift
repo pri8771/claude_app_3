@@ -11,15 +11,15 @@ import XCTest
 
 final class PuzzleStateTests: XCTestCase {
     func testInitialStateIsUnsolved() {
-        let state = PuzzleState(puzzle: SamplePuzzles.firstFold)
+        let state = PuzzleState(puzzle: PuzzleFixtures.firstFold)
         XCTAssertFalse(state.isSolved)
         XCTAssertEqual(state.moveCount, 0)
         XCTAssertFalse(state.canUndo)
     }
 
     func testHardcodedPuzzleSolvesThroughEngineCalls() throws {
-        var state = PuzzleState(puzzle: SamplePuzzles.firstFold)
-        let fold = try XCTUnwrap(SamplePuzzles.firstFoldSolution.first)
+        var state = PuzzleState(puzzle: PuzzleFixtures.firstFold)
+        let fold = try XCTUnwrap(PuzzleFixtures.firstFoldSolution.first)
 
         XCTAssertTrue(state.apply(fold))
         XCTAssertTrue(state.isSolved)
@@ -29,9 +29,9 @@ final class PuzzleStateTests: XCTestCase {
     }
 
     func testUndoRestoresPreviousBoard() throws {
-        var state = PuzzleState(puzzle: SamplePuzzles.firstFold)
+        var state = PuzzleState(puzzle: PuzzleFixtures.firstFold)
         let initialBoard = state.board
-        let fold = try XCTUnwrap(SamplePuzzles.firstFoldSolution.first)
+        let fold = try XCTUnwrap(PuzzleFixtures.firstFoldSolution.first)
 
         state.apply(fold)
         XCTAssertTrue(state.undo())
@@ -42,9 +42,9 @@ final class PuzzleStateTests: XCTestCase {
     }
 
     func testResetReturnsToInitial() throws {
-        var state = PuzzleState(puzzle: SamplePuzzles.firstFold)
+        var state = PuzzleState(puzzle: PuzzleFixtures.firstFold)
         let initialBoard = state.board
-        let fold = try XCTUnwrap(SamplePuzzles.firstFoldSolution.first)
+        let fold = try XCTUnwrap(PuzzleFixtures.firstFoldSolution.first)
 
         state.apply(fold)
         state.reset()
@@ -54,7 +54,7 @@ final class PuzzleStateTests: XCTestCase {
     }
 
     func testIllegalFoldLeavesStateUnchanged() {
-        var state = PuzzleState(puzzle: SamplePuzzles.firstFold)
+        var state = PuzzleState(puzzle: PuzzleFixtures.firstFold)
         let before = state.board
         XCTAssertFalse(state.apply(Fold(direction: .bottomOntoTop, position: 9)))
         XCTAssertEqual(state.board, before)
@@ -78,16 +78,16 @@ final class PuzzleStateTests: XCTestCase {
     }
 
     func testDeterministicReplayMatchesInteractivePlay() throws {
-        var state = PuzzleState(puzzle: SamplePuzzles.firstFold)
-        for fold in SamplePuzzles.firstFoldSolution {
+        var state = PuzzleState(puzzle: PuzzleFixtures.firstFold)
+        for fold in PuzzleFixtures.firstFoldSolution {
             state.apply(fold)
         }
-        let replayed = FoldEngine.replay(SamplePuzzles.firstFoldSolution, on: SamplePuzzles.firstFold.initialBoard)
+        let replayed = FoldEngine.replay(PuzzleFixtures.firstFoldSolution, on: PuzzleFixtures.firstFold.initialBoard)
         XCTAssertEqual(state.board, replayed)
     }
 
     func testPuzzleSerializationRoundTrip() throws {
-        let puzzle = SamplePuzzles.firstFold
+        let puzzle = PuzzleFixtures.firstFold
         let data = try JSONEncoder().encode(puzzle)
         let decoded = try JSONDecoder().decode(Puzzle.self, from: data)
         XCTAssertEqual(decoded, puzzle)

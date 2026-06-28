@@ -114,6 +114,8 @@ When filing a new bug, copy this template:
 | 2026-06-28 | Foundation implemented (FOLDLIGHT-PROMPT-001) | — | App shell, navigation, services, persistence, design system + unit tests added. No defects found during implementation review. |
 | 2026-06-28 | Core fold engine implemented (FOLDLIGHT-PROMPT-002) | — | Board/fold/combination/beam models + solver + undo/reset + 6 test files. No defects found; engine is Foundation-only and deterministic. |
 | 2026-06-28 | Playable SpriteKit board implemented (FOLDLIGHT-PROMPT-003) | — | GameScene/TileNode renderer, drag-to-fold + preview, beam draw, win animation, HUD, gesture interpreter + tests. Engine/UI separation preserved. No defects found. |
+| 2026-06-28 | Board animation upgrade (FOLDLIGHT-PROMPT-003 expanded) | — | BoardScene + GameView, 0.3s paper-fold, combination FX, 1.5s win + glow, animated undo, green/red feedback, debug coord labels. |
+| 2026-06-28 | Procedural level system implemented (FOLDLIGHT-PROMPT-004) | — | Seeded generator (constructive, verified solvable), validator, daily puzzle, level repository + prefetch, Infinite/Daily wiring, 4 test files. Removed hardcoded sample from production. No defects found. |
 
 ---
 

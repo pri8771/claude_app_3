@@ -35,8 +35,7 @@ struct PlayView: View {
         .navigationTitle(viewModel.puzzleTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            viewModel.configure(environment: environment)
-            viewModel.onAppear()
+            await viewModel.start(environment: environment)
         }
     }
 
@@ -93,8 +92,8 @@ struct PlayView: View {
                     .foregroundStyle(FoldlightColor.textSecondary)
 
                 VStack(spacing: FoldlightSpacing.sm) {
-                    PrimaryButton("Play Again", systemImage: "arrow.counterclockwise") {
-                        viewModel.reset()
+                    PrimaryButton(viewModel.advanceActionTitle, systemImage: "arrow.right.circle.fill") {
+                        viewModel.advance()
                     }
                     Button("Back to Home") {
                         router.popToRoot()

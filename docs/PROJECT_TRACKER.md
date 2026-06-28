@@ -122,18 +122,29 @@
 ## EPIC E005: Procedural Puzzle Generator
 
 **Goal:** Build reverse-construction puzzle generator
-**Status:** 📅 Not Started
-**Est SP:** 26 | **Actual SP:** —
+**Status:** 🔄 In Progress
+**Est SP:** 26 | **Actual SP:** 22 (so far)
 
 | Task ID | Task | Status | Est SP | Act SP | Est Start | Est End | Act Start | Act End | Dependencies |
 |---------|------|--------|--------|--------|-----------|---------|-----------|---------|--------------|
-| T005-01 | Implement solved board factory | 📅 | 3 | — | 2026-07-21 | 2026-07-22 | — | — | E004 |
-| T005-02 | Implement reverse fold scrambler | 📅 | 5 | — | 2026-07-22 | 2026-07-24 | — | — | T005-01 |
-| T005-03 | Implement difficulty classifier | 📅 | 5 | — | 2026-07-24 | 2026-07-26 | — | — | T005-02 |
-| T005-04 | Implement puzzle uniqueness validator | 📅 | 3 | — | 2026-07-26 | 2026-07-27 | — | — | T005-02 |
-| T005-05 | Implement DifficultyProgression curve | 📅 | 3 | — | 2026-07-27 | 2026-07-28 | — | — | T005-03 |
-| T005-06 | Build batch generation pipeline (async) | 📅 | 5 | — | 2026-07-28 | 2026-07-30 | — | — | T005-04 |
-| T005-07 | Write unit tests for generator | 📅 | 2 | — | 2026-07-30 | 2026-07-31 | — | — | T005-06 |
+| T005-01 | Implement solved board factory | ✅ | 3 | 3 | 2026-07-21 | 2026-07-22 | 2026-06-28 | 2026-06-28 | E004 |
+| T005-02 | Implement reverse fold scrambler | ✅ | 5 | 5 | 2026-07-22 | 2026-07-24 | 2026-06-28 | 2026-06-28 | T005-01 |
+| T005-03 | Implement difficulty classifier | ✅ | 5 | 3 | 2026-07-24 | 2026-07-26 | 2026-06-28 | 2026-06-28 | T005-02 |
+| T005-04 | Implement puzzle uniqueness validator | 🔄 | 3 | 2 | 2026-07-26 | 2026-07-27 | 2026-06-28 | — | T005-02 |
+| T005-05 | Implement DifficultyProgression curve | ✅ | 3 | 2 | 2026-07-27 | 2026-07-28 | 2026-06-28 | 2026-06-28 | T005-03 |
+| T005-06 | Build batch generation pipeline (async) | ✅ | 5 | 5 | 2026-07-28 | 2026-07-30 | 2026-06-28 | 2026-06-28 | T005-04 |
+| T005-07 | Write unit tests for generator | ✅ | 2 | 2 | 2026-07-30 | 2026-07-31 | 2026-06-28 | 2026-06-28 | T005-06 |
+
+**Phase 4 implementation notes (FOLDLIGHT-PROMPT-004, executed 2026-06-28):**
+- `Foldlight/Features/Levels/`: `SeededGenerator` (SplitMix64), `PuzzleGenerator` (actor), `PuzzleValidator`, `DailyPuzzleService` (actor), `LevelRepository` (actor), `GameRequest`. `Puzzle` gained an optional `solution: [Fold]`.
+- **Construction deviation (documented):** the engine's fold is destructive (boards shrink, tiles merge), so literal "apply-N-folds-then-invert" is not reversible. Instead the generator uses an equivalent *constructive reverse-generation*: lay a solved line, displace one path tile N rows down, so the forward solution is exactly N `bottomOntoTop` folds. This is **provably solvable in N folds** and engine-verified by `PuzzleValidator` (replays the embedded solution).
+- T005-03: difficulty = fold count via `Difficulty.foldRange` (Easy ≤3, Medium 4–6, Hard 7–9, Expert 10–12 capped).
+- T005-04: `PuzzleValidator` certifies solvable + non-trivial (`.valid`/`.unsolvable`/`.trivial`); **unique-solution** enforcement is not yet implemented (In Progress).
+- T005-05: Infinite Mode cycles difficulty up one tier after every 3 clears.
+- T005-06: `LevelRepository` keeps a 3-puzzle pre-generated queue per difficulty (background prefetch hides latency).
+- Daily puzzle: deterministic Medium puzzle seeded by `year*10000+month*100+day`, cached per session.
+- Wiring: `AppEnvironment` owns the generator/daily/repository + `pendingGameRequest`; `GameViewModel` loads daily/infinite; Home/Daily/Infinite screens set the request. `SamplePuzzles.swift` removed from production (moved to a test fixture). Generation is deterministic and completes in <1ms for these board sizes (well under the 500ms budget).
+- **Known limitation:** visual variety is currently low (single displaced tile; varying width/column/fold-count). Richer layouts (mirrors, multi-tile, decoys) are a follow-up.
 
 ---
 
@@ -295,7 +306,7 @@ The Play screen HUD (move count, puzzle status, undo/reset buttons, win overlay)
 | E002 | Xcode Initialization | 13 | 🔄 | 2026-06-28 | 2026-07-03 |
 | E003 | Data Models | 21 | 📅 | 2026-07-03 | 2026-07-07 |
 | E004 | Fold Engine | 34 | 🔄 | 2026-06-28 | 2026-07-21 |
-| E005 | Puzzle Generator | 26 | 📅 | 2026-07-21 | 2026-07-31 |
+| E005 | Puzzle Generator | 26 | 🔄 | 2026-06-28 | 2026-07-31 |
 | E006 | SpriteKit Scene | 55 | 🔄 | 2026-06-28 | 2026-08-24 |
 | E007 | SwiftUI Screens | 40 | 📅 | 2026-08-24 | 2026-09-09 |
 | E008 | Monetization (StoreKit 2) | 21 | 📅 | 2026-09-09 | 2026-09-15 |
@@ -315,6 +326,8 @@ The Play screen HUD (move count, puzzle status, undo/reset buttons, win overlay)
 | Sprint 1 | 2026-06-28 | 2026-06-28 | 13 | 9 | Foundation sprint (E002 + E007 Home/Settings foundation). App shell, navigation, services, persistence, design system, tests. |
 | Sprint 2 | 2026-06-28 | 2026-06-28 | 34 | 24 | Core fold engine (E004): board/fold/combination models, fold application, beam solver, undo/reset, serialization, 6 test files + in-app demo. |
 | Sprint 3 | 2026-06-28 | 2026-06-28 | 55 | 18 | Playable SpriteKit board (E006 + E007-04 HUD): GameScene/TileNode renderer, drag-to-fold + preview, beam draw, win animation, GameViewModel bridge, gesture interpreter + tests. |
+| Sprint 3b | 2026-06-28 | 2026-06-28 | — | 8 | Board animation upgrade: BoardScene + GameView, 0.3s paper-fold, combination FX, 1.5s win, animated undo, green/red feedback. |
+| Sprint 4 | 2026-06-28 | 2026-06-28 | 26 | 22 | Procedural level system (E005): seeded generator, validator, daily puzzle, level repository + prefetch, Infinite/Daily wiring, 4 test files. Removed hardcoded sample from production. |
 
 ---
 
