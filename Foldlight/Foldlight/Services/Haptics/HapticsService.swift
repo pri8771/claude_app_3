@@ -21,6 +21,7 @@ import UIKit
 enum HapticEvent: Sendable {
     case selection
     case lightImpact
+    case mediumImpact
     case success
     case warning
     case error
@@ -50,6 +51,8 @@ final class HapticsService: Haptics {
             UISelectionFeedbackGenerator().selectionChanged()
         case .lightImpact:
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        case .mediumImpact:
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         case .success:
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         case .warning:

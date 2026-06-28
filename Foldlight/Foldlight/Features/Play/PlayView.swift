@@ -2,14 +2,13 @@
 //  PlayView.swift
 //  Foldlight
 //
-//  Puzzle play screen (Phase 3). Hosts the SpriteKit board via SpriteView and a
+//  Puzzle play screen (Phase 3). Hosts the SpriteKit board via GameView and a
 //  SwiftUI HUD (move count, status, undo/reset) plus a win overlay. All gameplay
 //  rules live in the engine/GameViewModel; this view only presents state and
 //  forwards button intents.
 //
 
 import SwiftUI
-import SpriteKit
 
 struct PlayView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -18,7 +17,7 @@ struct PlayView: View {
 
     var body: some View {
         ZStack {
-            SpriteView(scene: viewModel.scene, options: [.shouldCullNonVisibleNodes])
+            GameView(scene: viewModel.scene)
                 .ignoresSafeArea(edges: .bottom)
 
             VStack {

@@ -149,12 +149,12 @@
 | T006-02 | Implement BoardNode (tile grid rendering) | ✅ | 5 | 4 | 2026-08-02 | 2026-08-04 | 2026-06-28 | 2026-06-28 | T006-01 |
 | T006-03 | Implement TileNode with 7 tile designs | ✅ | 8 | 4 | 2026-08-04 | 2026-08-08 | 2026-06-28 | 2026-06-28 | T006-02 |
 | T006-04 | Implement swipe/tap gesture recognition | ✅ | 3 | 3 | 2026-08-08 | 2026-08-09 | 2026-06-28 | 2026-06-28 | T006-01 |
-| T006-05 | Implement fold animation (paper-fold physics) | 🔄 | 8 | 2 | 2026-08-09 | 2026-08-13 | 2026-06-28 | — | T006-03 |
+| T006-05 | Implement fold animation (paper-fold physics) | ✅ | 8 | 6 | 2026-08-09 | 2026-08-13 | 2026-06-28 | 2026-06-28 | T006-03 |
 | T006-06 | Implement light beam particle animation | 🔄 | 5 | 2 | 2026-08-13 | 2026-08-15 | 2026-06-28 | — | T006-03 |
-| T006-07 | Implement tile combination visual effects | 📅 | 5 | — | 2026-08-15 | 2026-08-17 | — | — | T006-05 |
+| T006-07 | Implement tile combination visual effects | ✅ | 5 | 4 | 2026-08-15 | 2026-08-17 | 2026-06-28 | 2026-06-28 | T006-05 |
 | T006-08 | Implement win celebration animation | ✅ | 3 | 3 | 2026-08-17 | 2026-08-18 | 2026-06-28 | 2026-06-28 | T006-07 |
 | T006-09 | Implement camera zoom/pan for large boards | 📅 | 3 | — | 2026-08-18 | 2026-08-19 | — | — | T006-01 |
-| T006-10 | Implement undo/redo visual feedback | 🔄 | 2 | 1 | 2026-08-19 | 2026-08-20 | 2026-06-28 | — | T006-05 |
+| T006-10 | Implement undo/redo visual feedback | ✅ | 2 | 2 | 2026-08-19 | 2026-08-20 | 2026-06-28 | 2026-06-28 | T006-05 |
 | T006-11 | Implement hint visual overlay | 📅 | 3 | — | 2026-08-20 | 2026-08-21 | — | — | T006-04 |
 | T006-12 | Audio: fold ASMR sounds + music integration | 🔄 | 5 | 1 | 2026-08-21 | 2026-08-23 | 2026-06-28 | — | T006-05 |
 | T006-13 | 60fps/120fps performance optimization | 🔄 | 2 | 1 | 2026-08-23 | 2026-08-24 | 2026-06-28 | — | T006-09 |

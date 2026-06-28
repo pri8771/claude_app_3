@@ -18,9 +18,10 @@ enum GameTheme {
     static let win = SKColor(red: 0.45, green: 0.86, blue: 0.62, alpha: 1)
 
     // Fold preview
-    static let sourceHighlight = SKColor(red: 0.71, green: 0.55, blue: 0.96, alpha: 0.40)
+    static let legalHighlight = SKColor(red: 0.45, green: 0.86, blue: 0.62, alpha: 0.40)
     static let destinationOutline = SKColor(red: 0.56, green: 0.81, blue: 0.96, alpha: 0.9)
-    static let illegalHighlight = SKColor(red: 0.96, green: 0.45, blue: 0.45, alpha: 0.40)
+    static let illegalHighlight = SKColor(red: 0.96, green: 0.40, blue: 0.40, alpha: 0.55)
+    static let combinationFlash = SKColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
 
     static let glyphColor = SKColor(red: 0.95, green: 0.96, blue: 1.0, alpha: 1)
 

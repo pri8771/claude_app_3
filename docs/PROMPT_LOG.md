@@ -736,6 +736,16 @@ not built or run in-session. SpriteKit code was written to idiomatic iOS 17 /
 Xcode 16 APIs and reviewed; the pure gesture mapping is covered by unit tests. A
 build + on-simulator play-through is the next verification step on macOS.
 
+**Animation upgrade (2026-06-28, same day):** expanded the renderer to the full
+PROMPT-003 spec — renamed the scene to **`BoardScene`** and added a SwiftUI
+**`GameView`** wrapping `SKView` wrapping `BoardScene` (replacing `SpriteView`).
+Added a 0.3s ease-in-out **paper-fold animation** (source flap moves to its
+destination + collapses, new board scales in), **combination effects** (white
+flash + spark burst + tile pulse, ≈0.2s), a **1.5s win explosion + world glow**,
+an **animated undo**, **green legal / red illegal-flash** fold feedback, and
+optional **debug coordinate labels**. Haptics remapped to the spec (fold = medium,
+invalid = error, undo = light, win = success).
+
 **Acceptance criteria status:**
 - Open Play and solve a hardcoded puzzle — ✅ implemented (drag the bottom row up to solve `firstFold`); engine path is unit-tested.
 - Fold gestures work — ✅ implemented (drag-to-fold + preview); on-device check pending a macOS build.

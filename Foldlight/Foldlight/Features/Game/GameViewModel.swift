@@ -17,14 +17,14 @@ final class GameViewModel: ObservableObject {
     /// Set true the moment the puzzle becomes solved, to drive the win overlay.
     @Published private(set) var hasWon = false
 
-    /// The SpriteKit scene rendered by `SpriteView`. Created once and reused.
-    let scene: GameScene
+    /// The SpriteKit scene presented by `GameView`. Created once and reused.
+    let scene: BoardScene
 
     private var environment: AppEnvironment?
 
     init(puzzle: Puzzle = SamplePuzzles.firstFold) {
         self.state = PuzzleState(puzzle: puzzle)
-        self.scene = GameScene(size: CGSize(width: 390, height: 600))
+        self.scene = BoardScene(size: CGSize(width: 390, height: 600))
         configureScene()
         pushStateToScene()
     }
@@ -69,20 +69,32 @@ final class GameViewModel: ObservableObject {
     /// Apply a fold proposed by the scene. Returns whether it was applied.
     @discardableResult
     func proposeFold(_ fold: Fold) -> Bool {
-        let applied = state.apply(fold)
-        guard applied else {
-            environment?.haptics.play(.warning)
+        let oldBoard = state.board
+        guard state.isLegal(fold), let outcome = FoldEngine.apply(fold, to: oldBoard) else {
+            // Illegal: error haptic + sound; the scene shows the red flash.
+            environment?.haptics.play(.error)
             environment?.audio.play(.invalidFold)
             return false
         }
 
-        pushStateToScene()
+        state.apply(fold)
+        let newBoard = state.board
+        let newBeam = state.beam()
+
+        environment?.haptics.play(.mediumImpact)
         environment?.audio.play(.fold)
 
-        if state.isSolved {
-            handleWin()
-        } else {
-            environment?.haptics.play(.lightImpact)
+        scene.animateFold(
+            fold,
+            from: oldBoard,
+            to: newBoard,
+            beam: newBeam,
+            combinations: outcome.combinations
+        ) { [weak self] in
+            guard let self else { return }
+            if self.state.isSolved {
+                self.handleWin()
+            }
         }
         return true
     }
@@ -90,8 +102,8 @@ final class GameViewModel: ObservableObject {
     func undo() {
         guard state.undo() else { return }
         hasWon = false
-        pushStateToScene()
-        environment?.haptics.play(.selection)
+        scene.animateUndo(to: state.board, beam: state.beam())
+        environment?.haptics.play(.lightImpact)
     }
 
     func reset() {
@@ -118,9 +130,9 @@ final class GameViewModel: ObservableObject {
             let folds = moveCount
             Task { await analytics.track(AnalyticsEvent("puzzle_complete", parameters: ["folds": "\(folds)"])) }
         }
-        // Reveal the celebratory overlay after the SpriteKit burst has played.
+        // Reveal the celebratory overlay after the ~1.5s win animation plays.
         Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 700_000_000)
+            try? await Task.sleep(nanoseconds: 1_400_000_000)
             self?.hasWon = true
         }
     }
