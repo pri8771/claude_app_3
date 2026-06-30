@@ -1005,6 +1005,29 @@ Return:
 
 ---
 
+### FOLDLIGHT-PROMPT-005: Vertical-Slice Completion Loop
+**Date:** 2026-06-30 | **Phase:** Implementation | **Tool:** Codex | **Epic:** E007, E008, E010, E011 | **Status:** ✅ Used
+
+```
+Go through the GitHub repo and the conversation repo, then continue Foldlight toward an 80-90% production-ready playable app without asking follow-up questions. Ground the work in the actual repo, not stale docs, and finish the core user loop.
+```
+
+**Outcome Summary:**
+- Reviewed `pri8771/foldlight`, the open GitHub PR, and `/Users/pchordia/Documents/Github/conversation/Foldlight.md`.
+- Added first-run onboarding and a five-level guided tutorial path.
+- Added completion rewards: stars, Light Fragments, daily replay protection, tutorial reward idempotency, hint credits, and migration-safe profile fields.
+- Added restoration unlock/select behavior for all 10 biomes.
+- Added StoreKit 2 product catalog, purchase manager, entitlement refresh/restore, and a shop UI with fallback catalog display.
+- Fixed app icon asset metadata and wired generated master artwork into required icon slots.
+- Added focused tests for progression, tutorial puzzles, profile migration, and product catalog.
+- Verification: `xcodebuild test -project Foldlight/Foldlight.xcodeproj -scheme Foldlight -destination 'platform=iOS Simulator,name=iPhone 17'` passed with 99 tests.
+
+**Deferred / Remaining:**
+- StoreKit sandbox checkout still needs App Store Connect products or a local `.storekit` configuration.
+- Final tile/biome art, audio assets, Game Center, UI automation, device-matrix testing, and broader playtest balancing remain open.
+
+---
+
 ## Prompt Statistics (Updated)
 
 | Phase | Total | Used | Queued |
@@ -1012,10 +1035,10 @@ Return:
 | Ideation (ChatGPT) | 2 | 2 | 0 |
 | Architecture (ChatGPT) | 2 | 0 | 2 |
 | Claude Code Universal | 1 | 1 | 0 |
-| Claude Code Implementation | 7 | 4 | 3 |
+| Claude Code Implementation | 8 | 5 | 3 |
 | Claude Code Audit | 1 | 0 | 1 |
-| **Total** | **13** | **7** | **6** |
+| **Total** | **14** | **8** | **6** |
 
 ---
 
-*Last updated: 2026-06-28 — FOLDLIGHT-PROMPT-004 (procedural level generation) executed*
+*Last updated: 2026-06-30 — FOLDLIGHT-PROMPT-005 (vertical-slice completion loop) executed*

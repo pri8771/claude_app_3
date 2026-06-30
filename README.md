@@ -1,10 +1,16 @@
 # 🌟 Foldlight — Infinite Folding Puzzle Game
 
-**Repository:** `claude_app_3`  
+**Repository:** `foldlight`  
 **Platform:** iOS 17+  
 **Engine:** Swift 5.9 | SwiftUI + SpriteKit  
-**Status:** Pre-Development | Planning Phase  
-**Version:** 0.1.0-alpha  
+**Status:** Playable vertical slice | Production foundation in progress  
+**Version:** 0.2.0-alpha  
+
+---
+
+## Current Implementation State
+
+As of 2026-06-30, Foldlight is a compiling native iOS app with a SwiftUI shell, SpriteKit board, pure Swift fold/beam engine, five guided tutorial puzzles, deterministic daily puzzles, generated Infinite Mode, local progression, fragment-based world restoration, a StoreKit 2 shop surface, local persistence, and an XCTest suite. Remaining production gaps are final art/audio, StoreKit/App Store Connect product setup, Game Center, broader UI automation, and playtest-driven puzzle/content balancing.
 
 ---
 
@@ -36,7 +42,7 @@ The goal: guide a beam of light from its source to the goal crystal — but the 
 ## 📁 Repository Structure
 
 ```
-claude_app_3/
+foldlight/
 ├── README.md                    # This file
 ├── docs/
 │   ├── prd/

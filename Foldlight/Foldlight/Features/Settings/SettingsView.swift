@@ -11,6 +11,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel = SettingsViewModel()
+    @State private var showingResetConfirmation = false
 
     var body: some View {
         Form {
@@ -29,6 +30,14 @@ struct SettingsView: View {
                 LabeledContent("Version", value: viewModel.appVersion)
                 LabeledContent("Game", value: "Foldlight")
             }
+
+            Section("Local Data") {
+                Button(role: .destructive) {
+                    showingResetConfirmation = true
+                } label: {
+                    Label("Reset Progress", systemImage: "trash")
+                }
+            }
         }
         .scrollContentBackground(.hidden)
         .background(
@@ -44,6 +53,14 @@ struct SettingsView: View {
         .task {
             viewModel.configure(environment: environment)
             viewModel.onAppear()
+        }
+        .confirmationDialog("Reset all local progress?", isPresented: $showingResetConfirmation, titleVisibility: .visible) {
+            Button("Reset Progress", role: .destructive) {
+                Task { await environment.resetProgress() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This clears completed levels, fragments, hints, restored biomes, and local purchase fulfillment records on this device.")
         }
     }
 

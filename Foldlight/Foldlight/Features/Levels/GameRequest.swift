@@ -10,6 +10,8 @@ import Foundation
 
 /// The source of the next puzzle to play.
 enum GameRequest: Equatable, Sendable {
+    /// A hand-authored tutorial/vertical-slice level by zero-based index.
+    case tutorial(Int)
     /// Today's deterministic daily puzzle (always Medium).
     case daily
     /// An endless generated puzzle starting at the given difficulty tier; the

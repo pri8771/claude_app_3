@@ -148,11 +148,19 @@ enum FoldEngine {
             if let type = result.resultingType {
                 return (Cell(Tile(type: type)), event)
             }
-            // Winning overlap: retain the existing tile (e.g. the goal crystal).
-            return (existing, event)
+            // Winning overlap (lightSource + goalCrystal): deterministically retain
+            // the goal crystal regardless of which region it folded from, so the
+            // solved board still contains a goalCrystal and any post-win beam or
+            // undo/replay recompute stays consistent with the win flag.
+            let goalCell = existingTop.type == .goalCrystal ? existing : incoming
+            return (goalCell, event)
         }
 
         // No combination rule: tiles stack as layers (overlap representation).
-        return (Cell(layers: existing.layers + incoming.layers), nil)
+        // Only the top layer is beam-relevant, so cap the stack depth to bound
+        // memory and serialization size across deep fold/undo histories.
+        let stacked = existing.layers + incoming.layers
+        let capped = stacked.count > Cell.maxLayers ? Array(stacked.suffix(Cell.maxLayers)) : stacked
+        return (Cell(layers: capped), nil)
     }
 }

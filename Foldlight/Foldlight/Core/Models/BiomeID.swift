@@ -43,6 +43,40 @@ enum BiomeID: String, Codable, CaseIterable, Sendable, Identifiable {
         }
     }
 
+    /// Light Fragment cost to restore/unlock this biome. The first biome is
+    /// free; later costs are intentionally modest for the vertical slice so a
+    /// few solves can unlock visible progress.
+    var unlockCost: Int {
+        switch self {
+        case .crystalCave: return 0
+        case .glassForest: return 40
+        case .starMap: return 90
+        case .shadowRealm: return 160
+        case .moonGarden: return 250
+        case .fireFjord: return 360
+        case .ancientLibrary: return 500
+        case .voidArchive: return 680
+        case .sunkenAtoll: return 900
+        case .luminousDesert: return 1_200
+        }
+    }
+
+    /// Short restoration beat shown on the world screen.
+    var restorationLine: String {
+        switch self {
+        case .crystalCave: return "The first prism wakes."
+        case .glassForest: return "Glass leaves start to sing."
+        case .starMap: return "A fallen constellation returns."
+        case .shadowRealm: return "The dark edge softens."
+        case .moonGarden: return "Moonflowers reopen."
+        case .fireFjord: return "Embers become lanterns."
+        case .ancientLibrary: return "Lost shelves relight."
+        case .voidArchive: return "Blank pages remember."
+        case .sunkenAtoll: return "Tide pools glow again."
+        case .luminousDesert: return "The horizon turns gold."
+        }
+    }
+
     /// SF Symbol used as a placeholder biome glyph until art is produced.
     var systemImage: String {
         switch self {

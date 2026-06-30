@@ -17,6 +17,7 @@ enum AppRoute: Hashable, Identifiable, CaseIterable {
     case daily
     case infinite
     case restoration
+    case shop
     case settings
 
     var id: Self { self }
@@ -28,6 +29,7 @@ enum AppRoute: Hashable, Identifiable, CaseIterable {
         case .daily: return "Daily Puzzle"
         case .infinite: return "Infinite Mode"
         case .restoration: return "World Restoration"
+        case .shop: return "Shop"
         case .settings: return "Settings"
         }
     }
@@ -39,6 +41,7 @@ enum AppRoute: Hashable, Identifiable, CaseIterable {
         case .daily: return "A fresh hand-quality puzzle every day"
         case .infinite: return "Endless generated puzzles, any level"
         case .restoration: return "Spend Light Fragments to rebuild the world"
+        case .shop: return "Hints, skins, and optional upgrades"
         case .settings: return "Haptics, sound, and accessibility"
         }
     }
@@ -50,6 +53,7 @@ enum AppRoute: Hashable, Identifiable, CaseIterable {
         case .daily: return "calendar"
         case .infinite: return "infinity"
         case .restoration: return "globe.americas.fill"
+        case .shop: return "bag.fill"
         case .settings: return "gearshape.fill"
         }
     }

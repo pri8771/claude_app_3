@@ -27,13 +27,39 @@ struct PlayView: View {
             }
             .padding(FoldlightSpacing.lg)
 
-            if viewModel.hasWon {
-                winOverlay
+            if viewModel.hasWon, let summary = viewModel.lastSummary {
+                LevelCompleteView(
+                    summary: summary,
+                    advanceTitle: viewModel.advanceActionTitle,
+                    onAdvance: { viewModel.advance() },
+                    onHome: { router.popToRoot() }
+                )
+                .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.hasWon)
         .navigationTitle(viewModel.puzzleTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        viewModel.reset()
+                    } label: {
+                        Label("Restart Puzzle", systemImage: "arrow.counterclockwise")
+                    }
+                    Button(role: .destructive) {
+                        router.popToRoot()
+                    } label: {
+                        Label("Quit to Home", systemImage: "house")
+                    }
+                } label: {
+                    Image(systemName: "pause.circle")
+                        .foregroundStyle(FoldlightColor.primary)
+                }
+                .accessibilityLabel("Pause menu")
+            }
+        }
         .task {
             await viewModel.start(environment: environment)
         }
@@ -55,20 +81,15 @@ struct PlayView: View {
     }
 
     private var controls: some View {
-        HStack(spacing: FoldlightSpacing.md) {
-            Button {
+        HStack(spacing: FoldlightSpacing.sm) {
+            controlButton("Undo", systemImage: "arrow.uturn.backward", enabled: viewModel.canUndo) {
                 viewModel.undo()
-            } label: {
-                Label("Undo", systemImage: "arrow.uturn.backward")
-                    .frame(maxWidth: .infinity)
             }
-            .disabled(!viewModel.canUndo)
-
-            Button {
+            controlButton("Hint \(environment.profile.hintCredits)", systemImage: "lightbulb.fill", enabled: viewModel.canHint && environment.profile.hintCredits > 0) {
+                viewModel.requestHint()
+            }
+            controlButton("Reset", systemImage: "arrow.counterclockwise", enabled: viewModel.canUndo) {
                 viewModel.reset()
-            } label: {
-                Label("Reset", systemImage: "arrow.counterclockwise")
-                    .frame(maxWidth: .infinity)
             }
         }
         .font(FoldlightTypography.headline())
@@ -77,36 +98,19 @@ struct PlayView: View {
         .background(FoldlightColor.surface.opacity(0.85), in: RoundedRectangle(cornerRadius: FoldlightRadius.md))
     }
 
-    private var winOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.55).ignoresSafeArea()
-            VStack(spacing: FoldlightSpacing.lg) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 56))
-                    .foregroundStyle(FoldlightColor.success)
-                Text("Puzzle Solved")
-                    .font(FoldlightTypography.title())
-                    .foregroundStyle(FoldlightColor.textPrimary)
-                Text("Completed in \(viewModel.moveCount) fold\(viewModel.moveCount == 1 ? "" : "s").")
-                    .font(FoldlightTypography.body())
-                    .foregroundStyle(FoldlightColor.textSecondary)
-
-                VStack(spacing: FoldlightSpacing.sm) {
-                    PrimaryButton(viewModel.advanceActionTitle, systemImage: "arrow.right.circle.fill") {
-                        viewModel.advance()
-                    }
-                    Button("Back to Home") {
-                        router.popToRoot()
-                    }
-                    .font(FoldlightTypography.headline())
-                    .foregroundStyle(FoldlightColor.primary)
-                }
+    private func controlButton(_ title: String, systemImage: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: FoldlightSpacing.xxs) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 18))
+                Text(title)
+                    .font(FoldlightTypography.caption())
             }
-            .padding(FoldlightSpacing.xl)
-            .background(FoldlightColor.surface, in: RoundedRectangle(cornerRadius: FoldlightRadius.lg))
-            .padding(FoldlightSpacing.xl)
+            .frame(maxWidth: .infinity)
         }
-        .transition(.opacity)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.4)
+        .accessibilityLabel(title)
     }
 }
 

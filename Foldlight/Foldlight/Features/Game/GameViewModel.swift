@@ -14,11 +14,21 @@ import Combine
 
 @MainActor
 final class GameViewModel: ObservableObject {
+    private enum PlayMode: Equatable {
+        case tutorial(Int)
+        case daily
+        case infinite
+    }
+
     @Published private(set) var state: PuzzleState
     /// Set true the moment the puzzle becomes solved, to drive the win overlay.
     @Published private(set) var hasWon = false
     /// Whether the currently loaded puzzle is the daily puzzle.
     @Published private(set) var isDailyPuzzle = false
+    /// The reward summary for the most recent solve, shown on the win screen.
+    @Published private(set) var lastSummary: CompletionSummary?
+    /// Number of hints used on the current puzzle.
+    @Published private(set) var hintsUsed = 0
 
     /// The SpriteKit scene presented by `GameView`. Created once and reused.
     let scene: BoardScene
@@ -27,8 +37,13 @@ final class GameViewModel: ObservableObject {
     private var didStart = false
 
     // Infinite-mode session state.
+    private var mode: PlayMode = .infinite
     private var startingDifficulty: Difficulty = .easy
     private var infiniteClears = 0
+    /// Difficulty of the currently loaded puzzle (drives reward scaling).
+    private var currentDifficulty: Difficulty = .easy
+    /// Pending win-overlay reveal; cancelled if the player undoes/resets first.
+    private var winRevealTask: Task<Void, Never>?
 
     init() {
         let placeholder = Puzzle(id: "placeholder", title: "Play", initialBoard: Board(width: 0, height: 0))
@@ -51,7 +66,16 @@ final class GameViewModel: ObservableObject {
     }
 
     /// Label for the win-overlay primary action.
-    var advanceActionTitle: String { isDailyPuzzle ? "Replay" : "Next Puzzle" }
+    var advanceActionTitle: String {
+        switch mode {
+        case .daily:
+            return "Replay"
+        case .tutorial(let index):
+            return TutorialPuzzles.nextIndex(after: index) == nil ? "Start Infinite" : "Next Level"
+        case .infinite:
+            return "Next Puzzle"
+        }
+    }
 
     var statusText: String {
         guard isLoaded else { return "Loading…" }
@@ -75,6 +99,8 @@ final class GameViewModel: ObservableObject {
     func configure(environment: AppEnvironment) {
         guard self.environment == nil else { return }
         self.environment = environment
+        scene.reduceMotion = environment.settings.reduceMotion
+        scene.theme = BoardTheme.forBiome(environment.profile.currentBiome)
     }
 
     /// Load the requested puzzle (called once from the Play screen's task).
@@ -88,20 +114,34 @@ final class GameViewModel: ObservableObject {
 
     private func load(request: GameRequest, using env: AppEnvironment) async {
         switch request {
+        case .tutorial(let index):
+            isDailyPuzzle = false
+            guard let level = TutorialPuzzles.level(at: index) ?? TutorialPuzzles.level(at: 0) else { return }
+            mode = .tutorial(level.index)
+            currentDifficulty = level.difficulty
+            apply(puzzle: level.puzzle)
         case .daily:
             isDailyPuzzle = true
+            mode = .daily
+            currentDifficulty = .medium
             apply(puzzle: await env.dailyService.today())
         case .infinite(let difficulty):
             isDailyPuzzle = false
+            mode = .infinite
             startingDifficulty = difficulty
+            currentDifficulty = difficulty
             infiniteClears = 0
             apply(puzzle: await env.levelRepository.next(difficulty: difficulty))
         }
     }
 
     private func apply(puzzle: Puzzle) {
+        winRevealTask?.cancel()
+        winRevealTask = nil
         state = PuzzleState(puzzle: puzzle)
         hasWon = false
+        lastSummary = nil
+        hintsUsed = 0
         pushStateToScene()
     }
 
@@ -141,30 +181,82 @@ final class GameViewModel: ObservableObject {
 
     func undo() {
         guard state.undo() else { return }
-        hasWon = false
+        cancelPendingWin()
         scene.animateUndo(to: state.board, beam: state.beam())
         environment?.haptics.play(.lightImpact)
     }
 
     func reset() {
         state.reset()
-        hasWon = false
+        cancelPendingWin()
         pushStateToScene()
         environment?.haptics.play(.selection)
+    }
+
+    /// Cancel a queued win-overlay reveal and hide the overlay. Called whenever
+    /// the board changes out from under a pending win (undo / reset).
+    private func cancelPendingWin() {
+        winRevealTask?.cancel()
+        winRevealTask = nil
+        hasWon = false
+    }
+
+    /// Whether a hint can be offered right now.
+    var canHint: Bool { isLoaded && !isSolved && !hasWon }
+
+    /// Surface the next optimal fold on the board, computed live from the current
+    /// state so it is correct even after the player has diverged from par.
+    func requestHint() {
+        guard canHint, let fold = FoldSolver.nextFold(for: state.board) else {
+            environment?.haptics.play(.error)
+            return
+        }
+        guard let environment else { return }
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard await environment.consumeHintCredit() else {
+                environment.haptics.play(.error)
+                return
+            }
+            self.hintsUsed += 1
+            self.scene.showHint(fold)
+            environment.haptics.play(.lightImpact)
+            await environment.analytics.track(AnalyticsEvent("hint_used", parameters: ["puzzle": self.state.puzzle.id]))
+        }
     }
 
     /// Win-overlay primary action: replay (daily) or load the next puzzle
     /// (infinite, advancing difficulty after every 3 clears).
     func advance() {
-        if isDailyPuzzle {
+        switch mode {
+        case .daily:
             reset()
             return
-        }
-        guard let env = environment else { return }
-        let difficulty = difficultyForClears(infiniteClears)
-        Task { @MainActor [weak self] in
-            let puzzle = await env.levelRepository.next(difficulty: difficulty)
-            self?.apply(puzzle: puzzle)
+        case .tutorial(let index):
+            if let next = TutorialPuzzles.nextIndex(after: index), let level = TutorialPuzzles.level(at: next) {
+                mode = .tutorial(next)
+                currentDifficulty = level.difficulty
+                apply(puzzle: level.puzzle)
+                return
+            }
+            guard let env = environment else { return }
+            mode = .infinite
+            startingDifficulty = .easy
+            currentDifficulty = .easy
+            infiniteClears = 0
+            Task { @MainActor [weak self] in
+                let puzzle = await env.levelRepository.next(difficulty: .easy)
+                self?.apply(puzzle: puzzle)
+            }
+        case .infinite:
+            guard let env = environment else { return }
+            let difficulty = difficultyForClears(infiniteClears)
+            currentDifficulty = difficulty
+            Task { @MainActor [weak self] in
+                let puzzle = await env.levelRepository.next(difficulty: difficulty)
+                self?.apply(puzzle: puzzle)
+            }
         }
     }
 
@@ -181,17 +273,41 @@ final class GameViewModel: ObservableObject {
         scene.playWinAnimation()
         environment?.haptics.play(.success)
         environment?.audio.play(.win)
-        if !isDailyPuzzle {
-            infiniteClears += 1
-        }
-        if let analytics = environment?.analytics {
-            let folds = moveCount
-            Task { await analytics.track(AnalyticsEvent("puzzle_complete", parameters: ["folds": "\(folds)"])) }
-        }
-        // Reveal the celebratory overlay after the ~1.5s win animation plays.
-        Task { @MainActor [weak self] in
+
+        let folds = moveCount
+        let par = state.puzzle.parFolds
+        let daily = isDailyPuzzle
+        let difficulty = currentDifficulty
+        let puzzleID = state.puzzle.id
+        let rewardsRepeatable = mode == .infinite
+
+        // One task owns the whole win flow: award the reward immediately (so it
+        // is tied to the solve, not the overlay), then reveal the overlay after
+        // the ~1.4s celebration — unless an undo/reset cancelled it first.
+        winRevealTask?.cancel()
+        winRevealTask = Task { @MainActor [weak self] in
+            guard let self, let env = self.environment else { return }
+
+            let summary = await env.recordCompletion(
+                moveCount: folds,
+                parFolds: par,
+                difficulty: difficulty,
+                isDaily: daily,
+                puzzleID: puzzleID,
+                rewardsRepeatable: rewardsRepeatable
+            )
+            if Task.isCancelled { return }
+            self.lastSummary = summary
+            if self.mode == .infinite { self.infiniteClears += 1 }
+
+            await env.analytics.track(AnalyticsEvent(
+                "puzzle_complete",
+                parameters: ["folds": "\(folds)", "stars": "\(summary.stars)", "fragments": "\(summary.fragmentsEarned)"]
+            ))
+
             try? await Task.sleep(nanoseconds: 1_400_000_000)
-            self?.hasWon = true
+            guard !Task.isCancelled, self.state.isSolved else { return }
+            self.hasWon = true
         }
     }
 

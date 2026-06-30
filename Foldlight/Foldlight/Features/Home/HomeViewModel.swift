@@ -14,7 +14,7 @@ final class HomeViewModel: ObservableObject {
     private var environment: AppEnvironment?
 
     /// Routes surfaced as menu cards on Home, in display order.
-    let menuRoutes: [AppRoute] = [.play, .daily, .infinite, .restoration]
+    let menuRoutes: [AppRoute] = [.play, .daily, .infinite, .restoration, .shop]
 
     /// Inject dependencies once. Idempotent.
     func configure(environment: AppEnvironment) {

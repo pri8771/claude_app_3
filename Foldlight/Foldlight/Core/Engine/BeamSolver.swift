@@ -11,8 +11,18 @@ import Foundation
 
 /// Stateless light-beam ray tracer.
 enum BeamSolver {
-    /// Maximum number of steps before the trace aborts (loop guard).
-    static let maxSteps = 100
+    /// Defensive hard cap on steps. The primary loop guard is the visited
+    /// directed-edge set below; this only backstops a pathological board.
+    static let maxSteps = 4096
+
+    /// The traversal state that fully determines the beam's future: where it is
+    /// and which way it is heading. Revisiting an identical state means the beam
+    /// has entered a cycle, so the trace can terminate immediately (a true
+    /// directed-edge loop guard rather than a step cap).
+    private struct BeamState: Hashable {
+        let position: BoardCoordinate
+        let direction: BeamDirection
+    }
 
     /// Trace the beam on a board and return the segments plus whether the goal
     /// was reached.
@@ -25,10 +35,15 @@ enum BeamSolver {
         var direction = BeamDirection(emitting: orientation)
         var position = source
         var segments: [BeamSegment] = []
+        var visited: Set<BeamState> = []
 
-        var steps = 0
-        while steps < maxSteps {
-            steps += 1
+        while segments.count < maxSteps {
+            // If we have already traversed this (position, direction), the beam
+            // is looping — stop before emitting a duplicate segment.
+            guard visited.insert(BeamState(position: position, direction: direction)).inserted else {
+                return BeamResult(segments: segments, reachedGoal: false, termination: .loopGuard)
+            }
+
             let next = position.offset(direction)
 
             guard board.contains(next) else {

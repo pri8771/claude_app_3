@@ -88,8 +88,8 @@ struct HomeView: View {
                 ) {
                     environment.haptics.play(.selection)
                     if route == .play {
-                        // The Home "Play" card jumps straight into an Infinite session.
-                        environment.pendingGameRequest = .infinite(.easy)
+                        // The Home "Play" card starts the guided vertical slice.
+                        environment.pendingGameRequest = .tutorial(0)
                     }
                     router.push(route)
                 }

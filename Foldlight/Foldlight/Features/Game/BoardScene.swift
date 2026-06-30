@@ -35,6 +35,27 @@ final class BoardScene: SKScene {
     private var tileNodes: [BoardCoordinate: TileNode] = [:]
     private var isAnimating = false
 
+    /// When true (user setting), fold/win animations are replaced with instant
+    /// crossfades. The system Reduce Motion setting is also honored at runtime.
+    var reduceMotion = false
+
+    /// The biome skin applied to the board (tiles + background tint).
+    var theme: BoardTheme = .default {
+        didSet {
+            guard theme != oldValue else { return }
+            backgroundColor = theme.backgroundEdge
+            GameTheme.current = theme
+            renderCurrent()
+        }
+    }
+    private var prefersReducedMotion: Bool {
+        #if canImport(UIKit)
+        return reduceMotion || UIAccessibility.isReduceMotionEnabled
+        #else
+        return reduceMotion
+        #endif
+    }
+
     // MARK: Layers
 
     private let boardLayer = SKNode()
@@ -106,6 +127,9 @@ final class BoardScene: SKScene {
 
     override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
+        // Never re-render mid-fold: it would wipe the tile nodes the in-flight
+        // animation references and desync the board.
+        guard !isAnimating else { return }
         renderCurrent()
     }
 
@@ -128,6 +152,14 @@ final class BoardScene: SKScene {
     ) {
         guard size.width > 0, currentLayout.tileSize > 0 else {
             render(board: newBoard, beam: newBeam)
+            completion()
+            return
+        }
+
+        // Reduce Motion: crossfade to the new board instead of the paper-fold.
+        if prefersReducedMotion {
+            render(board: newBoard, beam: newBeam, landingScaleIn: false)
+            for event in combinations { flashCombination(at: event.coordinate) }
             completion()
             return
         }
@@ -178,10 +210,61 @@ final class BoardScene: SKScene {
         render(board: board, beam: beam, landingScaleIn: true)
     }
 
+    /// Highlight a recommended fold (the hint system): a pulsing outline on the
+    /// region that should fold, plus an outline of where it lands. Self-removes.
+    func showHint(_ fold: Fold) {
+        guard currentLayout.tileSize > 0 else { return }
+        let tile = currentLayout.tileSize
+        let panelSize = CGSize(width: tile * 0.92, height: tile * 0.92)
+
+        for coordinate in board.coordinates where FoldEngine.isSource(coordinate, fold: fold) {
+            guard !board.cell(at: coordinate).isEmpty else { continue }
+
+            let highlight = SKShapeNode(rectOf: panelSize, cornerRadius: tile * 0.18)
+            highlight.position = currentLayout.point(coordinate)
+            highlight.fillColor = .clear
+            highlight.strokeColor = GameTheme.win
+            highlight.lineWidth = 3
+            highlight.glowWidth = 4
+            highlight.zPosition = 25
+            effectsLayer.addChild(highlight)
+            let pulse = SKAction.sequence([
+                .fadeAlpha(to: 0.25, duration: 0.4),
+                .fadeAlpha(to: 1.0, duration: 0.4)
+            ])
+            highlight.run(.sequence([.repeat(pulse, count: 3), .removeFromParent()]))
+
+            let destination = FoldEngine.reflectedCoordinate(coordinate, fold: fold)
+            if board.contains(destination) {
+                let outline = SKShapeNode(rectOf: panelSize, cornerRadius: tile * 0.18)
+                outline.position = currentLayout.point(destination)
+                outline.fillColor = .clear
+                outline.strokeColor = GameTheme.destinationOutline
+                outline.lineWidth = 2
+                outline.zPosition = 25
+                effectsLayer.addChild(outline)
+                outline.run(.sequence([.wait(forDuration: 2.4), .removeFromParent()]))
+            }
+        }
+    }
+
     /// Celebration when the puzzle is solved: a light explosion plus a world
     /// glow, ≈1.5s (Technical PRD § "win animation").
     func playWinAnimation() {
         guard currentLayout.tileSize > 0 else { return }
+
+        // Reduce Motion: a single calm glow, no expanding ring or flying sparks.
+        if prefersReducedMotion {
+            let glow = SKShapeNode(rect: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+            glow.fillColor = GameTheme.win
+            glow.strokeColor = .clear
+            glow.alpha = 0
+            glow.zPosition = 28
+            effectsLayer.addChild(glow)
+            glow.run(.sequence([.fadeAlpha(to: 0.25, duration: 0.3), .fadeOut(withDuration: 0.6), .removeFromParent()]))
+            return
+        }
+
         let tile = currentLayout.tileSize
 
         // World glow: a full-scene flash that fades out.
@@ -257,7 +340,7 @@ final class BoardScene: SKScene {
         let lit = Set(beam.visitedCoordinates)
         for coordinate in board.coordinates {
             let cell = board.cell(at: coordinate)
-            let node = TileNode(tile: cell.top ?? Tile(type: .empty), size: lay.tileSize)
+            let node = TileNode(tile: cell.top ?? Tile(type: .empty), size: lay.tileSize, theme: theme)
             node.position = lay.point(coordinate)
             if cell.effectiveType != .empty && lit.contains(coordinate) {
                 node.setState(.lit)

@@ -44,7 +44,7 @@ struct InfiniteView: View {
 
                     InfoBanner(
                         systemImage: "gearshape.2",
-                        message: "Puzzles are generated locally and guaranteed solvable. The reverse-construction generator lands in Phase 4."
+                        message: "Puzzles are generated locally, verified by the engine, and queued ahead of play so loading stays quick."
                     )
                 }
                 .padding(FoldlightSpacing.lg)

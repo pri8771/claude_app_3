@@ -21,6 +21,10 @@ struct Cell: Equatable, Codable, Sendable {
     /// An empty cell with no tiles.
     static var empty: Cell { Cell(layers: []) }
 
+    /// Maximum retained layer depth. Only the top layer is beam-relevant, so
+    /// deeper layers from repeated non-combining folds are bounded for safety.
+    static let maxLayers = 8
+
     /// Convenience for a single-tile cell.
     init(_ tile: Tile) {
         self.layers = [tile]

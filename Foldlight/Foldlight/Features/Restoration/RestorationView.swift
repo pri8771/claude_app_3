@@ -30,13 +30,24 @@ struct RestorationView: View {
 
                     LazyVGrid(columns: columns, spacing: FoldlightSpacing.md) {
                         ForEach(viewModel.biomeStatuses) { status in
-                            BiomeCell(status: status)
+                            BiomeCell(
+                                status: status,
+                                canAfford: environment.profile.lightFragments >= status.cost
+                            ) {
+                                Task {
+                                    if status.isUnlocked {
+                                        await environment.selectBiome(status.biome)
+                                    } else {
+                                        _ = await environment.unlockBiome(status.biome, cost: status.cost)
+                                    }
+                                }
+                            }
                         }
                     }
 
                     InfoBanner(
                         systemImage: "globe.americas",
-                        message: "Spend Light Fragments earned from puzzles to rebuild islands, light constellations, and return creatures. Restoration spending arrives in Phase 5."
+                        message: "Spend Light Fragments earned from puzzles to restore each biome. The selected biome drives the current world identity while full art skins are produced."
                     )
                 }
                 .padding(FoldlightSpacing.lg)
@@ -53,6 +64,8 @@ struct RestorationView: View {
 
 private struct BiomeCell: View {
     let status: RestorationViewModel.BiomeStatus
+    let canAfford: Bool
+    let action: () -> Void
 
     var body: some View {
         VStack(spacing: FoldlightSpacing.sm) {
@@ -63,17 +76,62 @@ private struct BiomeCell: View {
                 .font(FoldlightTypography.caption())
                 .foregroundStyle(FoldlightColor.textPrimary)
                 .multilineTextAlignment(.center)
+            Text(status.biome.restorationLine)
+                .font(FoldlightTypography.caption())
+                .foregroundStyle(FoldlightColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+
+            Button(action: action) {
+                Text(buttonTitle)
+                    .font(FoldlightTypography.caption())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, FoldlightSpacing.sm)
+                    .background(buttonColor, in: RoundedRectangle(cornerRadius: FoldlightRadius.sm))
+            }
+            .foregroundStyle(buttonForeground)
+            .disabled(isDisabled)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 110)
+        .frame(height: 172)
+        .padding(.horizontal, FoldlightSpacing.sm)
         .background(FoldlightColor.surface, in: RoundedRectangle(cornerRadius: FoldlightRadius.md))
         .overlay(
             RoundedRectangle(cornerRadius: FoldlightRadius.md)
-                .stroke(FoldlightColor.border, lineWidth: 1)
+                .stroke(status.isCurrent ? FoldlightColor.primary : FoldlightColor.border, lineWidth: status.isCurrent ? 2 : 1)
         )
         .opacity(status.isUnlocked ? 1 : 0.55)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(status.biome.displayName), \(status.isUnlocked ? "unlocked" : "locked")")
+        .accessibilityLabel(accessibilityText)
+    }
+
+    private var buttonTitle: String {
+        if status.isCurrent { return "Current" }
+        if status.isUnlocked { return "Select" }
+        return canAfford ? "Unlock \(status.cost)" : "\(status.cost) Needed"
+    }
+
+    private var buttonColor: Color {
+        if status.isCurrent { return FoldlightColor.primary.opacity(0.18) }
+        if status.isUnlocked || canAfford { return FoldlightColor.primary }
+        return FoldlightColor.border.opacity(0.35)
+    }
+
+    private var buttonForeground: Color {
+        status.isUnlocked || canAfford ? FoldlightColor.background : FoldlightColor.textSecondary
+    }
+
+    private var isDisabled: Bool {
+        status.isCurrent || (!status.isUnlocked && !canAfford)
+    }
+
+    private var accessibilityText: String {
+        if status.isCurrent { return "\(status.biome.displayName), current biome" }
+        if status.isUnlocked { return "\(status.biome.displayName), unlocked" }
+        return "\(status.biome.displayName), locked, costs \(status.cost) fragments"
     }
 }
 

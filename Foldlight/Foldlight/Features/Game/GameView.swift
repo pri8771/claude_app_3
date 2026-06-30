@@ -25,6 +25,14 @@ struct GameView: UIViewRepresentable {
         #endif
         scene.scaleMode = .resizeFill
         view.presentScene(scene)
+
+        // VoiceOver: describe the board and how to interact. Live puzzle state is
+        // announced by the accessible HUD status text in PlayView.
+        view.isAccessibilityElement = true
+        view.accessibilityLabel = "Puzzle board"
+        view.accessibilityHint = "Drag across the board to fold one section onto another and guide the light to the crystal."
+        view.accessibilityTraits = .allowsDirectInteraction
+
         return view
     }
 

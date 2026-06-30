@@ -45,7 +45,7 @@ struct DailyView: View {
 
                     InfoBanner(
                         systemImage: "calendar.badge.clock",
-                        message: "Today's seed is derived deterministically from the date, so the generator (Phase 4) reproduces the same daily puzzle on every device with no server."
+                        message: "Today's puzzle is generated from the date on-device, so everyone gets the same daily challenge with no server."
                     )
                 }
                 .padding(FoldlightSpacing.lg)

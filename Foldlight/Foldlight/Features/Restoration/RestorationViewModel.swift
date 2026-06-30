@@ -19,6 +19,8 @@ final class RestorationViewModel: ObservableObject {
     struct BiomeStatus: Identifiable {
         let biome: BiomeID
         let isUnlocked: Bool
+        let isCurrent: Bool
+        let cost: Int
         var id: String { biome.id }
     }
 
@@ -26,7 +28,12 @@ final class RestorationViewModel: ObservableObject {
     var biomeStatuses: [BiomeStatus] {
         let profile = environment?.profile ?? .new
         return BiomeID.allCases.map {
-            BiomeStatus(biome: $0, isUnlocked: profile.isUnlocked($0))
+            BiomeStatus(
+                biome: $0,
+                isUnlocked: profile.isUnlocked($0),
+                isCurrent: profile.currentBiome == $0,
+                cost: $0.unlockCost
+            )
         }
     }
 

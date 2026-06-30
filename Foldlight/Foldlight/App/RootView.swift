@@ -14,13 +14,23 @@ struct RootView: View {
     @EnvironmentObject private var router: AppRouter
 
     var body: some View {
-        NavigationStack(path: $router.path) {
-            HomeView()
-                .navigationDestination(for: AppRoute.self) { route in
-                    destination(for: route)
+        Group {
+            if !environment.isReady {
+                LaunchLoadingView()
+            } else if !environment.hasCompletedOnboarding {
+                OnboardingView {
+                    environment.completeOnboarding()
                 }
+            } else {
+                NavigationStack(path: $router.path) {
+                    HomeView()
+                        .navigationDestination(for: AppRoute.self) { route in
+                            destination(for: route)
+                        }
+                }
+                .tint(FoldlightColor.primary)
+            }
         }
-        .tint(FoldlightColor.primary)
     }
 
     /// Resolve a route to its feature screen.
@@ -35,8 +45,25 @@ struct RootView: View {
             InfiniteView()
         case .restoration:
             RestorationView()
+        case .shop:
+            ShopView()
         case .settings:
             SettingsView()
+        }
+    }
+}
+
+private struct LaunchLoadingView: View {
+    var body: some View {
+        ScreenScaffold {
+            VStack(spacing: FoldlightSpacing.md) {
+                ProgressView()
+                    .tint(FoldlightColor.primary)
+                Text("Preparing Foldlight")
+                    .font(FoldlightTypography.caption())
+                    .foregroundStyle(FoldlightColor.textSecondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }

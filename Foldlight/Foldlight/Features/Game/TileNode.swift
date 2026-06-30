@@ -2,9 +2,10 @@
 //  TileNode.swift
 //  Foldlight
 //
-//  A single rendered board tile: a rounded color panel plus a glyph, with three
-//  visual states (idle / lit-by-beam / emphasized). Pure rendering — it holds no
-//  game rules.
+//  A single rendered board tile. The artwork comes from TileRenderer (bespoke,
+//  cached vector textures per tile type); this node adds the three interactive
+//  visual states (idle / lit-by-beam / emphasized) as a glowing border overlay.
+//  Pure rendering — it holds no game rules.
 //
 
 import SpriteKit
@@ -17,26 +18,21 @@ final class TileNode: SKNode {
         case emphasized   // e.g. just transformed by a combination
     }
 
-    private let panel: SKShapeNode
-    private let label: SKLabelNode
+    private let sprite: SKSpriteNode
+    private let border: SKShapeNode
 
-    init(tile: Tile, size: CGFloat) {
-        let inset = size * 0.92
-        panel = SKShapeNode(rectOf: CGSize(width: inset, height: inset), cornerRadius: size * 0.18)
-        label = SKLabelNode(text: GameTheme.glyph(for: tile))
+    init(tile: Tile, size: CGFloat, theme: BoardTheme = .default) {
+        let texture = TileRenderer.texture(for: tile, size: size, theme: theme)
+        sprite = SKSpriteNode(texture: texture, size: CGSize(width: size, height: size))
+        border = SKShapeNode(rectOf: CGSize(width: size * 0.92, height: size * 0.92), cornerRadius: size * 0.18)
         super.init()
 
-        panel.fillColor = GameTheme.fill(for: tile.type)
-        panel.strokeColor = GameTheme.grid
-        panel.lineWidth = 1
-        addChild(panel)
+        addChild(sprite)
 
-        label.fontName = "AvenirNext-Bold"
-        label.fontSize = size * 0.46
-        label.fontColor = GameTheme.glyphColor
-        label.verticalAlignmentMode = .center
-        label.horizontalAlignmentMode = .center
-        addChild(label)
+        border.fillColor = .clear
+        border.strokeColor = .clear
+        border.lineWidth = 0
+        addChild(border)
 
         setState(.idle)
     }
@@ -49,17 +45,17 @@ final class TileNode: SKNode {
     func setState(_ state: DisplayState) {
         switch state {
         case .idle:
-            panel.strokeColor = GameTheme.grid
-            panel.lineWidth = 1
-            panel.glowWidth = 0
+            border.strokeColor = .clear
+            border.lineWidth = 0
+            border.glowWidth = 0
         case .lit:
-            panel.strokeColor = GameTheme.beam
-            panel.lineWidth = 3
-            panel.glowWidth = 6
+            border.strokeColor = GameTheme.beam
+            border.lineWidth = 3
+            border.glowWidth = 5
         case .emphasized:
-            panel.strokeColor = GameTheme.destinationOutline
-            panel.lineWidth = 3
-            panel.glowWidth = 0
+            border.strokeColor = GameTheme.destinationOutline
+            border.lineWidth = 3
+            border.glowWidth = 0
         }
     }
 

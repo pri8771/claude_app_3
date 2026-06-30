@@ -3,7 +3,7 @@
 **Game:** Foldlight — Spatial Puzzle
 **Platform:** iOS 17.0+
 **Stack:** Swift / SwiftUI / SpriteKit / SwiftData / StoreKit 2
-**Last Updated:** 2026-06-28
+**Last Updated:** 2026-06-30
 
 ---
 
@@ -63,7 +63,7 @@
 | T002-07 | Implement AppCoordinator navigation | ✅ | 2 | 2 | 2026-07-02 | 2026-07-03 | 2026-06-28 | 2026-06-28 | T002-04 |
 
 **Phase 1 implementation notes (FOLDLIGHT-PROMPT-001, executed 2026-06-28):**
-- T002-03: Launch screen generated via `INFOPLIST_KEY_UILaunchScreen_Generation`. App icon set is a placeholder (1024px slot, no artwork yet — pending E010). Marked In Progress.
+- T002-03: Launch screen generated via `INFOPLIST_KEY_UILaunchScreen_Generation`. App icon now has a generated 1024px master wired into required iOS slots; final marketing-grade art remains part of broader asset production.
 - T002-05: **Deferred for the MVP foundation.** Per the Phase 1 prompt ("Use local persistence appropriate for MVP — Codable + file storage or UserDefaults"), persistence is implemented via a real `FileSaveService` (Codable + atomic file storage) plus a `PreferencesStore` (UserDefaults). SwiftData migration is planned for a later phase and the `SaveService` protocol isolates that swap.
 - T002-07: Implemented as `AppRouter` (NavigationStack path coordinator) + `AppEnvironment` composition root.
 - Also delivered ahead of schedule: shared design system (tokens + components), Home/Settings foundation screens (see E007), haptics service, audio service stub, local analytics stub, and unit tests.
@@ -189,20 +189,20 @@ The Play screen HUD (move count, puzzle status, undo/reset buttons, win overlay)
 ## EPIC E007: SwiftUI UI Layer
 
 **Goal:** Build all app screens (non-game) in SwiftUI
-**Status:** 📅 Not Started
-**Est SP:** 40 | **Actual SP:** —
+**Status:** 🔄 In Progress
+**Est SP:** 40 | **Actual SP:** 19 (so far)
 
 | Task ID | Task | Status | Est SP | Act SP | Est Start | Est End | Act Start | Act End | Dependencies |
 |---------|------|--------|--------|--------|-----------|---------|-----------|---------|--------------|
-| T007-01 | Main Menu / Home Screen | 🔄 | 3 | 1 | 2026-08-24 | 2026-08-25 | 2026-06-28 | — | E006 |
-| T007-02 | World Map Screen (10 biomes) | 📅 | 5 | — | 2026-08-25 | 2026-08-27 | — | — | T007-01 |
+| T007-01 | Main Menu / Home Screen | ✅ | 3 | 3 | 2026-08-24 | 2026-08-25 | 2026-06-28 | 2026-06-30 | E006 |
+| T007-02 | World Map Screen (10 biomes) | 🔄 | 5 | 3 | 2026-08-25 | 2026-08-27 | 2026-06-30 | — | T007-01 |
 | T007-03 | Level Select Screen (per biome) | 📅 | 3 | — | 2026-08-27 | 2026-08-28 | — | — | T007-02 |
 | T007-04 | Puzzle HUD (moves, timer, hints) | 🔄 | 3 | 2 | 2026-08-28 | 2026-08-29 | 2026-06-28 | — | E006 |
-| T007-05 | Cosmetic Shop screen | 📅 | 5 | — | 2026-08-29 | 2026-08-31 | — | — | E008 |
-| T007-06 | Settings screen | 🔄 | 2 | 1 | 2026-08-31 | 2026-09-01 | 2026-06-28 | — | T007-01 |
+| T007-05 | Cosmetic Shop screen | 🔄 | 5 | 4 | 2026-08-29 | 2026-08-31 | 2026-06-30 | — | E008 |
+| T007-06 | Settings screen | ✅ | 2 | 2 | 2026-08-31 | 2026-09-01 | 2026-06-28 | 2026-06-30 | T007-01 |
 | T007-07 | Achievement screen | 📅 | 5 | — | 2026-09-01 | 2026-09-03 | — | — | T007-02 |
-| T007-08 | Daily Challenge screen | 📅 | 3 | — | 2026-09-03 | 2026-09-04 | — | — | T007-03 |
-| T007-09 | Onboarding / Tutorial flow | 📅 | 5 | — | 2026-09-04 | 2026-09-06 | — | — | T007-01 |
+| T007-08 | Daily Challenge screen | ✅ | 3 | 3 | 2026-09-03 | 2026-09-04 | 2026-06-28 | 2026-06-30 | T007-03 |
+| T007-09 | Onboarding / Tutorial flow | ✅ | 5 | 5 | 2026-09-04 | 2026-09-06 | 2026-06-30 | 2026-06-30 | T007-01 |
 | T007-10 | World restoration cutscene (per biome) | 📅 | 5 | — | 2026-09-06 | 2026-09-08 | — | — | T007-02 |
 | T007-11 | Leaderboard screen (Game Center) | 📅 | 2 | — | 2026-09-08 | 2026-09-09 | — | — | T007-07 |
 
@@ -211,19 +211,27 @@ The Play screen HUD (move count, puzzle status, undo/reset buttons, win overlay)
 ## EPIC E008: Monetization (StoreKit 2)
 
 **Goal:** Implement all IAP products and purchase flows
-**Status:** 📅 Not Started
-**Est SP:** 21 | **Actual SP:** —
+**Status:** 🔄 In Progress
+**Est SP:** 21 | **Actual SP:** 14 (so far)
 
 | Task ID | Task | Status | Est SP | Act SP | Est Start | Est End | Act Start | Act End | Dependencies |
 |---------|------|--------|--------|--------|-----------|---------|-----------|---------|--------------|
-| T008-01 | Define StoreKit product IDs (all SKUs) | 📅 | 1 | — | 2026-09-09 | 2026-09-09 | — | — | E002 |
-| T008-02 | Implement PurchaseManager (StoreKit 2) | 📅 | 5 | — | 2026-09-09 | 2026-09-11 | — | — | T008-01 |
-| T008-03 | Implement product fetch + caching | 📅 | 2 | — | 2026-09-11 | 2026-09-11 | — | — | T008-02 |
-| T008-04 | Implement purchase flow (async/await) | 📅 | 3 | — | 2026-09-11 | 2026-09-12 | — | — | T008-02 |
-| T008-05 | Implement restore purchases | 📅 | 2 | — | 2026-09-12 | 2026-09-12 | — | — | T008-04 |
+| T008-01 | Define StoreKit product IDs (all SKUs) | ✅ | 1 | 1 | 2026-09-09 | 2026-09-09 | 2026-06-30 | 2026-06-30 | E002 |
+| T008-02 | Implement PurchaseManager (StoreKit 2) | ✅ | 5 | 4 | 2026-09-09 | 2026-09-11 | 2026-06-30 | 2026-06-30 | T008-01 |
+| T008-03 | Implement product fetch + caching | ✅ | 2 | 2 | 2026-09-11 | 2026-09-11 | 2026-06-30 | 2026-06-30 | T008-02 |
+| T008-04 | Implement purchase flow (async/await) | 🔄 | 3 | 2 | 2026-09-11 | 2026-09-12 | 2026-06-30 | — | T008-02 |
+| T008-05 | Implement restore purchases | ✅ | 2 | 2 | 2026-09-12 | 2026-09-12 | 2026-06-30 | 2026-06-30 | T008-04 |
 | T008-06 | Implement subscription management | 📅 | 3 | — | 2026-09-13 | 2026-09-14 | — | — | T008-04 |
-| T008-07 | Entitlement persistence (SwiftData) | 📅 | 2 | — | 2026-09-14 | 2026-09-14 | — | — | T008-05 |
-| T008-08 | Write IAP unit tests | 📅 | 3 | — | 2026-09-14 | 2026-09-15 | — | — | T008-07 |
+| T008-07 | Entitlement persistence (SwiftData) | ✅ | 2 | 2 | 2026-09-14 | 2026-09-14 | 2026-06-30 | 2026-06-30 | T008-05 |
+| T008-08 | Write IAP unit tests | 🔄 | 3 | 1 | 2026-09-14 | 2026-09-15 | 2026-06-30 | — | T008-07 |
+
+**Phase 5 implementation notes (Codex, executed 2026-06-30):**
+- Added first-run onboarding and five hand-authored tutorial puzzles, each engine-validated and hint-solver discoverable.
+- Home "Play" now launches the guided path; Daily and Infinite remain separate puzzle sources.
+- Completion now awards stars/fragments, protects daily/tutorial replays from duplicate rewards, consumes hint credits for hints, and persists migration-safe profile fields.
+- Restoration grid now unlocks/selects all 10 biomes with Light Fragment costs.
+- StoreKit 2 manager loads products, verifies purchases, listens for transaction updates, restores entitlements, and fulfills hint/non-consumable purchases into the local profile. Store checkout still requires App Store Connect or a StoreKit configuration file before sandbox QA.
+- Added focused tests for progression, tutorial puzzles, and product catalog. Full simulator test run: 99 tests passing on 2026-06-30.
 
 ---
 
@@ -246,12 +254,12 @@ The Play screen HUD (move count, puzzle status, undo/reset buttons, win overlay)
 ## EPIC E010: Asset Production
 
 **Goal:** Create all visual and audio assets
-**Status:** 📅 Not Started
-**Est SP:** 55 | **Actual SP:** —
+**Status:** 🔄 In Progress
+**Est SP:** 55 | **Actual SP:** 2 (so far)
 
 | Task ID | Task | Status | Est SP | Act SP | Est Start | Est End | Act Start | Act End | Dependencies |
 |---------|------|--------|--------|--------|-----------|---------|-----------|---------|--------------|
-| T010-01 | App icon (all required sizes) | 📅 | 2 | — | 2026-07-01 | 2026-07-02 | — | — | E002 |
+| T010-01 | App icon (all required sizes) | ✅ | 2 | 2 | 2026-07-01 | 2026-07-02 | 2026-06-30 | 2026-06-30 | E002 |
 | T010-02 | 7 tile type art (base + variants) | 📅 | 8 | — | 2026-07-07 | 2026-07-11 | — | — | T003-01 |
 | T010-03 | 10 biome background themes | 📅 | 13 | — | 2026-07-14 | 2026-07-22 | — | — | T003-08 |
 | T010-04 | Board fold animations (Lottie/SpriteKit) | 📅 | 13 | — | 2026-07-22 | 2026-07-30 | — | — | T010-02 |
@@ -308,10 +316,10 @@ The Play screen HUD (move count, puzzle status, undo/reset buttons, win overlay)
 | E004 | Fold Engine | 34 | 🔄 | 2026-06-28 | 2026-07-21 |
 | E005 | Puzzle Generator | 26 | 🔄 | 2026-06-28 | 2026-07-31 |
 | E006 | SpriteKit Scene | 55 | 🔄 | 2026-06-28 | 2026-08-24 |
-| E007 | SwiftUI Screens | 40 | 📅 | 2026-08-24 | 2026-09-09 |
-| E008 | Monetization (StoreKit 2) | 21 | 📅 | 2026-09-09 | 2026-09-15 |
+| E007 | SwiftUI Screens | 40 | 🔄 | 2026-08-24 | 2026-09-09 |
+| E008 | Monetization (StoreKit 2) | 21 | 🔄 | 2026-09-09 | 2026-09-15 |
 | E009 | Game Center | 13 | 📅 | 2026-09-15 | 2026-09-19 |
-| E010 | Asset Production | 55 | 📅 | 2026-07-01 | 2026-08-07 |
+| E010 | Asset Production | 55 | 🔄 | 2026-07-01 | 2026-08-07 |
 | E011 | QA & Testing | 34 | 📅 | 2026-09-20 | 2026-10-04 |
 | E012 | Beta & Launch | 21 | 📅 | 2026-10-15 | 2027-01-15 |
 | **TOTAL** | | **354** | | **2026-06-27** | **2027-01-15** |
@@ -328,7 +336,8 @@ The Play screen HUD (move count, puzzle status, undo/reset buttons, win overlay)
 | Sprint 3 | 2026-06-28 | 2026-06-28 | 55 | 18 | Playable SpriteKit board (E006 + E007-04 HUD): GameScene/TileNode renderer, drag-to-fold + preview, beam draw, win animation, GameViewModel bridge, gesture interpreter + tests. |
 | Sprint 3b | 2026-06-28 | 2026-06-28 | — | 8 | Board animation upgrade: BoardScene + GameView, 0.3s paper-fold, combination FX, 1.5s win, animated undo, green/red feedback. |
 | Sprint 4 | 2026-06-28 | 2026-06-28 | 26 | 22 | Procedural level system (E005): seeded generator, validator, daily puzzle, level repository + prefetch, Infinite/Daily wiring, 4 test files. Removed hardcoded sample from production. |
+| Sprint 5 | 2026-06-30 | 2026-06-30 | 61 | 33 | Vertical-slice completion loop: onboarding, 5 guided levels, rewards/stars/fragments, hint credits, restoration unlock/select, StoreKit manager/shop, app icon metadata, 14 added tests. |
 
 ---
 
-*Last updated: 2026-06-28*
+*Last updated: 2026-06-30*
