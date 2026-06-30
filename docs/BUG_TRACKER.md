@@ -1,8 +1,12 @@
-# Bug Tracker — Foldlight (claude_app_3)
+# Bug Tracker — Foldlight
 
-**Game:** Foldlight — Spatial Puzzle
+> _Updated 2026-06-30 to match the shipped product and launch scope. See [../LAUNCH_READINESS.md](../LAUNCH_READINESS.md)._
+>
+> **Reconciliation notes:** Repo is `pri8771/foldlight` (`claude_app_3` is legacy). There are no code bugs because there is no code yet (pre-build / docs-only). The launch-blocking and non-blocking issue triage for v1 lives in **LAUNCH_READINESS.md §7** (e.g. no app exists, stale repo identity, the AdMob-vs-offline monetization contradiction, three incompatible IAP catalogs). Several "Pre-Development Known Risks" below reference deferred subsystems (procedural generator, StoreKit, Game Center, biome atlases) that are **out of v1 scope** — keep them as design notes, not active v1 bugs.
+
+**Game:** Foldlight — Folding Light Puzzle
 **Platform:** iOS 17.0+
-**Last Updated:** 2026-06-27
+**Last Updated:** 2026-06-30
 
 ---
 

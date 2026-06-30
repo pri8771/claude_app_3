@@ -1,9 +1,13 @@
-# Project Tracker — Foldlight (claude_app_3)
+# Project Tracker — Foldlight
 
-**Game:** Foldlight — Spatial Puzzle
+> _Updated 2026-06-30 to match the shipped product and launch scope. See [../LAUNCH_READINESS.md](../LAUNCH_READINESS.md)._
+>
+> **Reconciliation notes:** The repo is `pri8771/foldlight` (the `claude_app_3` name is legacy). Implementation state is **pre-build / docs-only** — only EPIC E001 (documentation) is complete; nothing in E002+ is built. The epic plan below is the _full long-term vision_; the **v1 launch scope is much narrower** (engine + 5 levels + minimal shell, no generator/monetization/Game Center). For v1, treat E004 (Fold Engine) and a 5-level subset as the priority, build the engine headless and test-first, and **defer E005 generator, E008 monetization, E009 Game Center, and the 10-biome content in E006/E007/E010** until the fold mechanic is validated as fun. Source of truth for v1 scope and sequencing: LAUNCH_READINESS.md §2/§3/§8.
+
+**Game:** Foldlight — Folding Light Puzzle
 **Platform:** iOS 17.0+
-**Stack:** Swift / SwiftUI / SpriteKit / SwiftData / StoreKit 2
-**Last Updated:** 2026-06-27
+**Stack (v1):** Swift / SwiftUI / SpriteKit / Codable (SwiftData & StoreKit 2 deferred)
+**Last Updated:** 2026-06-30
 
 ---
 

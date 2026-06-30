@@ -1,10 +1,14 @@
-# 🌟 Foldlight — Infinite Folding Puzzle Game
+# 🌟 Foldlight — Folding Light Puzzle Game
 
-**Repository:** `claude_app_3`  
-**Platform:** iOS 17+  
-**Engine:** Swift 5.9 | SwiftUI + SpriteKit  
-**Status:** Pre-Development | Planning Phase  
-**Version:** 0.1.0-alpha  
+> _Updated 2026-06-30 to match the shipped product and launch scope. See [LAUNCH_READINESS.md](LAUNCH_READINESS.md)._
+
+**Repository:** `pri8771/foldlight`
+**Platform:** iOS 17+
+**Engine:** Swift 5.9 | SwiftUI + SpriteKit (planned)
+**Status:** Pre-build / Docs-only — Planning Phase
+**Version:** 0.0.0 (no app code yet)
+
+> **Current implementation state (2026-06-30):** This repository is **documentation only**. There is **no Xcode project, no Swift source, and no tests** yet — the `Foldlight/` and `FoldlightTests/` directories described below are the _planned_ structure, not present files. The canonical, build-to spec for v1 is **[LAUNCH_READINESS.md](LAUNCH_READINESS.md)**, which deliberately narrows the broad vision below to **one proven fold-and-solve mechanic plus 5 hand-authored levels** (no procedural generation, no monetization, no Game Center in v1). Treat the marketing-scale sections (10 biomes, infinite generation, full IAP catalog) as long-term vision, not v1 scope.
 
 ---
 
@@ -18,16 +22,18 @@
 
 ## 🎯 Core Mechanic
 
-The board is made of foldable magical tiles. Instead of matching, swapping, or sorting, the player **folds sections of the board** over other sections. When tiles overlap, they combine and transform:
+The board is made of foldable magical tiles. Instead of matching, swapping, or sorting, the player **folds sections of the board** over other sections. When tiles overlap, they combine and transform.
+
+**v1 frozen mechanic (the only set v1 builds — see LAUNCH_READINESS.md §2):** five tile types — `lightSource`, `goalCrystal`, `path`, `mirror`, `blocker` — and a small symmetric combination matrix:
 
 | Tile A | Tile B | Result |
 |--------|--------|--------|
-| Light | Mirror | Beam changes direction |
-| Seed | Water | Plant bridge grows |
-| Fire | Ice | Steam cloud appears |
-| Key | Lock | Door opens |
-| Empty | Shadow | Hidden path revealed |
-| Broken Path | Matching Path | Path repaired |
+| Light Source | Mirror | Beam turns 90° (reflecting cell) |
+| Path | Path | Connected, traversable path |
+| Light/Path | Blocker | Illegal/blocked overlap (fold rejected) |
+| Any | Goal Crystal | Goal preserved |
+
+**Long-term vision (deferred, not v1):** richer combinations — Seed+Water (bridge), Fire+Ice (steam), Key+Lock (gate), Empty+Shadow (revealed path), Monster+Cage (capture) — are documented in the PRDs but are out of v1 scope.
 
 The goal: guide a beam of light from its source to the goal crystal — but the only way to solve the puzzle is by **folding the board itself into new arrangements**.
 
@@ -35,33 +41,42 @@ The goal: guide a beam of light from its source to the goal crystal — but the 
 
 ## 📁 Repository Structure
 
+**Present today (docs only):**
+
 ```
-claude_app_3/
+foldlight/
 ├── README.md                    # This file
-├── docs/
-│   ├── prd/
-│   │   ├── TECHNICAL_PRD.md
-│   │   ├── NON_TECHNICAL_PRD.md
-│   │   ├── BUSINESS_PLAN_PRD.md
-│   │   ├── MONETIZATION_PRD.md
-│   │   ├── PRIVATE_BETA_PRD.md
-│   │   ├── PUBLIC_BETA_PRD.md
-│   │   ├── GO_TO_MARKET_PRD.md
-│   │   ├── MARKETING_PLAN_PRD.md
-│   │   └── INVESTOR_DECK_PRD.md
-│   ├── PROJECT_TRACKER.md
-│   ├── BUG_TRACKER.md
-│   ├── PROMPT_LOG.md
-│   ├── ARCHITECTURE.md
-│   └── DESIGN_SYSTEM.md
-├── Foldlight/                   # Xcode project (Swift source)
-│   ├── App/
-│   ├── Game/
-│   ├── UI/
-│   ├── Data/
-│   └── Resources/
-└── FoldlightTests/
+├── LAUNCH_READINESS.md          # Canonical v1 build-to spec (read this)
+└── docs/
+    ├── prd/
+    │   ├── TECHNICAL_PRD.md
+    │   ├── NON_TECHNICAL_PRD.md
+    │   ├── BUSINESS_PLAN_PRD.md
+    │   ├── MONETIZATION_PRD.md
+    │   ├── PRIVATE_BETA_PRD.md
+    │   ├── PUBLIC_BETA_PRD.md
+    │   ├── GO_TO_MARKET_PRD.md
+    │   ├── MARKETING_PLAN_PRD.md
+    │   └── INVESTOR_DECK_PRD.md
+    ├── PROJECT_DOCUMENTATION.md
+    ├── PROJECT_TRACKER.md
+    ├── BUG_TRACKER.md
+    └── PROMPT_LOG.md
 ```
+
+**Planned (not yet created)** — the v1 build target adds a pure-Swift, UI-free engine module plus a thin SwiftUI/SpriteKit shell:
+
+```
+Foldlight/                   # Xcode project (Swift source) — NOT PRESENT YET
+├── App/                     # SwiftUI app shell, navigation
+├── Engine/                  # Pure Swift: Board, Fold, OverlapMatrix, BeamSolver (no UI imports)
+├── Game/                    # SpriteKit board renderer + gestures
+├── Data/                    # Codable level loading + local progress
+└── Resources/               # 5 bundled levels (JSON), assets
+FoldlightTests/              # swift test target for the Engine — NOT PRESENT YET
+```
+
+> Note: `docs/ARCHITECTURE.md` and `docs/DESIGN_SYSTEM.md` are referenced in older drafts but do **not** exist yet; the engine/UI architecture is specified in LAUNCH_READINESS.md §1 and §8.
 
 ---
 
@@ -90,30 +105,32 @@ claude_app_3/
 
 ---
 
-## 💰 Monetization (IAP via StoreKit 2)
+## 💰 Monetization (deferred — NOT in v1)
 
-- 🎨 **Cosmetic Board Skins** — different visual themes per biome
-- 💡 **Hint Packs** — optional convenience, never required
-- 🌍 **Biome Unlock Bundles** — early access to world areas
-- 🚫 **No Ads purchase** — premium one-time unlock
-- 🏆 **Challenge Pass** — optional seasonal content
-- ❌ **No pay-to-win** — all puzzles solvable without IAP
+> **v1 ships with no monetization** — no StoreKit, no IAP, no ads, no subscription. The list below is long-term vision. Note: older monetization docs are internally contradictory (e.g. `MONETIZATION_PRD.md` plans Google AdMob rewarded ads, which conflicts with this project's "zero third-party dependencies / no network calls / no data collected" guarantees in `TECHNICAL_PRD.md`). The recommended resolution is **no ads; cosmetic IAP only**, decided after the core mechanic is proven fun. See LAUNCH_READINESS.md §3 and §7 (BLK-3, BLK-4).
+
+- 🎨 **Cosmetic Board Skins** — different visual themes (post-v1)
+- 💡 **Hint Packs** — optional convenience, never required (post-v1)
+- 🚫 **No Ads / premium unlock** — only relevant if ads are ever added (currently: no ads)
+- ❌ **No pay-to-win, no energy timers, no gambling** — all puzzles solvable without spending
 
 ---
 
 ## 🗺️ Development Roadmap
 
-| Phase | Description | Target |
-|-------|-------------|--------|
-| Phase 0 | Documentation & Planning | Week 1-2 |
-| Phase 1 | Core Engine (fold system, tile overlap) | Week 3-6 |
-| Phase 2 | Procedural Level Generator | Week 7-9 |
-| Phase 3 | Meta-Progression & World Restoration | Week 10-12 |
-| Phase 4 | Art, Animations & Polish | Week 13-16 |
-| Phase 5 | Monetization & StoreKit | Week 17-18 |
-| Phase 6 | Private Beta | Week 19-20 |
-| Phase 7 | Public Beta | Week 21-22 |
-| Phase 8 | App Store Launch | Week 23-24 |
+**v1 (current target) — prove the mechanic, then stop:** build a pure-Swift fold/overlap/beam engine (test-first, no SpriteKit), 5 hand-authored teaching levels, a minimal SwiftUI+SpriteKit playable shell, undo/reset, onboarding, and basic accessibility. **Then gate everything else on a fun test** (does a first-time player voluntarily replay to find a cleaner fold?). See LAUNCH_READINESS.md §2 and §8.
+
+| Phase | Description | Scope |
+|-------|-------------|-------|
+| Phase 0 | Documentation & Planning | Done |
+| Phase 1 | **v1:** Headless engine (fold, overlap, beam, win, undo) + 5 levels + tests | Current |
+| Phase 2 | **v1:** Playable SpriteKit board UI + SwiftUI shell + local progress + onboarding + a11y | Current |
+| Phase 3 | **Gate:** fun validation on the 5 levels | Decision point |
+| Phase 4 | Procedural generator _spike_ (disposable; only if fun test passes) | Deferred |
+| Phase 5 | Meta-progression, biomes, content scale-up | Deferred |
+| Phase 6 | Monetization decision (cosmetic IAP only; no ads) | Deferred |
+| Phase 7 | Private → Public Beta (TestFlight) | Deferred |
+| Phase 8 | App Store Launch | Deferred |
 
 ---
 
