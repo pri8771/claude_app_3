@@ -2,8 +2,8 @@
 //  InfiniteView.swift
 //  Foldlight
 //
-//  Infinite Mode entry point. Player picks a difficulty tier and starts an
-//  endlessly-generated puzzle (generation wired up in a later phase).
+//  Infinite Mode entry point. Starts the endlessly generated progression path,
+//  mixing Normal, Hard, Super Hard, and Challenge levels over time.
 //
 
 import SwiftUI
@@ -17,34 +17,38 @@ struct InfiniteView: View {
         ScreenScaffold {
             ScrollView {
                 VStack(alignment: .leading, spacing: FoldlightSpacing.lg) {
-                    Text("Choose a difficulty")
+                    Text("Infinite Levels")
                         .font(FoldlightTypography.title())
                         .foregroundStyle(FoldlightColor.textPrimary)
 
-                    VStack(spacing: FoldlightSpacing.sm) {
-                        ForEach(viewModel.difficulties) { difficulty in
-                            DifficultyRow(
-                                difficulty: difficulty,
-                                isSelected: difficulty == viewModel.selectedDifficulty
-                            ) {
-                                viewModel.select(difficulty)
-                            }
+                    NextLevelCard(
+                        title: viewModel.nextLevelText,
+                        subtitle: viewModel.categoryText,
+                        reward: viewModel.rewardText,
+                        category: viewModel.nextPlan.category
+                    )
+
+                    VStack(alignment: .leading, spacing: FoldlightSpacing.sm) {
+                        Text("Level Mix")
+                            .font(FoldlightTypography.headline())
+                            .foregroundStyle(FoldlightColor.textPrimary)
+                        ForEach(viewModel.categories) { category in
+                            CategoryRow(
+                                category: category,
+                                oddsText: viewModel.oddsText(for: category)
+                            )
                         }
                     }
 
-                    Text("Reward: \(viewModel.rewardText)")
-                        .font(FoldlightTypography.caption())
-                        .foregroundStyle(FoldlightColor.fragment)
-
-                    PrimaryButton("Generate Puzzle", systemImage: "infinity") {
+                    PrimaryButton("Start Level", systemImage: "play.fill") {
                         environment.haptics.play(.selection)
-                        environment.pendingGameRequest = .infinite(viewModel.selectedDifficulty)
+                        environment.pendingGameRequest = .infinite
                         router.push(.play)
                     }
 
                     InfoBanner(
-                        systemImage: "gearshape.2",
-                        message: "Puzzles are generated locally, verified by the engine, and queued ahead of play so loading stays quick."
+                        systemImage: "infinity",
+                        message: "The endless path gets tougher as your total completed levels climbs."
                     )
                 }
                 .padding(FoldlightSpacing.lg)
@@ -56,35 +60,100 @@ struct InfiniteView: View {
             viewModel.configure(environment: environment)
             viewModel.onAppear()
         }
+        .onChange(of: environment.profile) { _, profile in
+            viewModel.refresh(profile: profile)
+        }
     }
 }
 
-private struct DifficultyRow: View {
-    let difficulty: Difficulty
-    let isSelected: Bool
-    let action: () -> Void
+private struct NextLevelCard: View {
+    let title: String
+    let subtitle: String
+    let reward: String
+    let category: InfiniteLevelCategory
 
     var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(difficulty.displayName)
-                    .font(FoldlightTypography.headline())
+        HStack(spacing: FoldlightSpacing.md) {
+            Image(systemName: category.systemImage)
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 44, height: 44)
+                .background(tint.opacity(0.14), in: Circle())
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: FoldlightSpacing.xs) {
+                Text(title)
+                    .font(FoldlightTypography.title())
                     .foregroundStyle(FoldlightColor.textPrimary)
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(FoldlightColor.primary)
-                }
+                Text(subtitle)
+                    .font(FoldlightTypography.caption())
+                    .foregroundStyle(FoldlightColor.textSecondary)
             }
-            .padding(FoldlightSpacing.md)
-            .background(FoldlightColor.surface, in: RoundedRectangle(cornerRadius: FoldlightRadius.md))
-            .overlay(
-                RoundedRectangle(cornerRadius: FoldlightRadius.md)
-                    .stroke(isSelected ? FoldlightColor.primary : FoldlightColor.border, lineWidth: isSelected ? 2 : 1)
-            )
+
+            Spacer(minLength: FoldlightSpacing.sm)
+
+            Text(reward)
+                .font(FoldlightTypography.caption())
+                .foregroundStyle(FoldlightColor.fragment)
+                .multilineTextAlignment(.trailing)
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+        .padding(FoldlightSpacing.md)
+        .background(FoldlightColor.surface, in: RoundedRectangle(cornerRadius: FoldlightRadius.md))
+        .overlay(
+            RoundedRectangle(cornerRadius: FoldlightRadius.md)
+                .stroke(tint.opacity(0.65), lineWidth: 1)
+        )
+    }
+
+    private var tint: Color {
+        switch category {
+        case .normal: return FoldlightColor.primary
+        case .hard: return FoldlightColor.warning
+        case .superHard: return FoldlightColor.fragment
+        case .challenge: return FoldlightColor.accent
+        }
+    }
+}
+
+private struct CategoryRow: View {
+    let category: InfiniteLevelCategory
+    let oddsText: String
+
+    var body: some View {
+        HStack(spacing: FoldlightSpacing.md) {
+            Image(systemName: category.systemImage)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 28, height: 28)
+                .accessibilityHidden(true)
+
+            Text(category.displayName)
+                .font(FoldlightTypography.headline())
+                .foregroundStyle(FoldlightColor.textPrimary)
+
+            Spacer()
+
+            Text(oddsText)
+                .font(FoldlightTypography.numeric())
+                .foregroundStyle(FoldlightColor.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .padding(FoldlightSpacing.md)
+        .background(FoldlightColor.surface, in: RoundedRectangle(cornerRadius: FoldlightRadius.md))
+        .overlay(
+            RoundedRectangle(cornerRadius: FoldlightRadius.md)
+                .stroke(FoldlightColor.border, lineWidth: 1)
+        )
+    }
+
+    private var tint: Color {
+        switch category {
+        case .normal: return FoldlightColor.primary
+        case .hard: return FoldlightColor.warning
+        case .superHard: return FoldlightColor.fragment
+        case .challenge: return FoldlightColor.accent
+        }
     }
 }
 

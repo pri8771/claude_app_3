@@ -2,9 +2,8 @@
 //  InfiniteViewModel.swift
 //  Foldlight
 //
-//  Presentation state for Infinite Mode. Lets the player choose a difficulty
-//  tier; the chosen tier feeds the procedural generator in a later phase. Holds
-//  selection state, so it is a genuine @StateObject view model.
+//  Presentation state for Infinite Mode. Previews the next progression-planned
+//  generated level and the current Gardenscapes-style category mix.
 //
 
 import Foundation
@@ -13,26 +12,39 @@ import Foundation
 final class InfiniteViewModel: ObservableObject {
     private var environment: AppEnvironment?
 
-    /// Currently selected difficulty tier.
-    @Published var selectedDifficulty: Difficulty = .easy
+    @Published private(set) var nextPlan = InfiniteLevelProgression.plan(afterCompletedLevels: 0)
 
-    /// All selectable difficulty tiers.
-    let difficulties = Difficulty.allCases
+    let categories = InfiniteLevelCategory.allCases
 
-    /// Reward range label for the selected tier, e.g. "5–10 Fragments".
+    var nextLevelText: String {
+        nextPlan.title
+    }
+
+    var categoryText: String {
+        "\(nextPlan.category.displayName) · \(nextPlan.generatorDifficulty.displayName)"
+    }
+
+    /// Reward range label for the next generated tier, e.g. "5–10 Fragments".
     var rewardText: String {
-        let range = selectedDifficulty.fragmentReward
+        let range = nextPlan.generatorDifficulty.fragmentReward
         return "\(range.lowerBound)–\(range.upperBound) Fragments"
     }
 
     func configure(environment: AppEnvironment) {
-        guard self.environment == nil else { return }
-        self.environment = environment
+        if self.environment == nil {
+            self.environment = environment
+        }
+        refresh(profile: environment.profile)
     }
 
-    func select(_ difficulty: Difficulty) {
-        selectedDifficulty = difficulty
-        environment?.haptics.play(.selection)
+    func refresh(profile: PlayerProfile) {
+        nextPlan = InfiniteLevelProgression.plan(afterCompletedLevels: profile.totalLevelsCompleted)
+    }
+
+    func oddsText(for category: InfiniteLevelCategory) -> String {
+        let weights = InfiniteLevelProgression.categoryWeights(forLevelNumber: nextPlan.levelNumber)
+        let percent = weights.first { $0.category == category }?.percent ?? 0
+        return "\(percent)%"
     }
 
     func onAppear() {

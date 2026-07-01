@@ -33,7 +33,7 @@ final class AppEnvironment: ObservableObject {
     @Published private(set) var isReady = false
     @Published private(set) var hasCompletedOnboarding = false
     /// The puzzle source the Play screen should load next.
-    @Published var pendingGameRequest: GameRequest = .infinite(.easy)
+    @Published var pendingGameRequest: GameRequest = .infinite
 
     init(
         preferences: PreferencesStore,

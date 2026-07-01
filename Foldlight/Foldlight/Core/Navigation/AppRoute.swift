@@ -39,7 +39,7 @@ enum AppRoute: Hashable, Identifiable, CaseIterable {
         switch self {
         case .play: return "Solve curated folding puzzles"
         case .daily: return "A fresh hand-quality puzzle every day"
-        case .infinite: return "Endless generated puzzles, any level"
+        case .infinite: return "Endless generated puzzles that keep escalating"
         case .restoration: return "Spend Light Fragments to rebuild the world"
         case .shop: return "Hints, skins, and optional upgrades"
         case .settings: return "Haptics, sound, and accessibility"

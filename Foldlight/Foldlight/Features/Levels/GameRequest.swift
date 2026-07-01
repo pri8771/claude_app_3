@@ -14,7 +14,6 @@ enum GameRequest: Equatable, Sendable {
     case tutorial(Int)
     /// Today's deterministic daily puzzle (always Medium).
     case daily
-    /// An endless generated puzzle starting at the given difficulty tier; the
-    /// tier advances after every 3 clears within the session.
-    case infinite(Difficulty)
+    /// An endless generated puzzle selected by `InfiniteLevelProgression`.
+    case infinite
 }

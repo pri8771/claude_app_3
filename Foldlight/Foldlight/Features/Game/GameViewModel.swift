@@ -36,12 +36,11 @@ final class GameViewModel: ObservableObject {
     private var environment: AppEnvironment?
     private var didStart = false
 
-    // Infinite-mode session state.
     private var mode: PlayMode = .infinite
-    private var startingDifficulty: Difficulty = .easy
-    private var infiniteClears = 0
     /// Difficulty of the currently loaded puzzle (drives reward scaling).
     private var currentDifficulty: Difficulty = .easy
+    /// Player-facing level category for generated infinite puzzles.
+    private var currentInfiniteCategory: InfiniteLevelCategory?
     /// Pending win-overlay reveal; cancelled if the player undoes/resets first.
     private var winRevealTask: Task<Void, Never>?
 
@@ -119,19 +118,18 @@ final class GameViewModel: ObservableObject {
             guard let level = TutorialPuzzles.level(at: index) ?? TutorialPuzzles.level(at: 0) else { return }
             mode = .tutorial(level.index)
             currentDifficulty = level.difficulty
+            currentInfiniteCategory = nil
             apply(puzzle: level.puzzle)
         case .daily:
             isDailyPuzzle = true
             mode = .daily
             currentDifficulty = .medium
+            currentInfiniteCategory = nil
             apply(puzzle: await env.dailyService.today())
-        case .infinite(let difficulty):
+        case .infinite:
             isDailyPuzzle = false
             mode = .infinite
-            startingDifficulty = difficulty
-            currentDifficulty = difficulty
-            infiniteClears = 0
-            apply(puzzle: await env.levelRepository.next(difficulty: difficulty))
+            await loadNextInfinitePuzzle(using: env)
         }
     }
 
@@ -226,8 +224,8 @@ final class GameViewModel: ObservableObject {
         }
     }
 
-    /// Win-overlay primary action: replay (daily) or load the next puzzle
-    /// (infinite, advancing difficulty after every 3 clears).
+    /// Win-overlay primary action: replay (daily) or load the next progression
+    /// planned generated puzzle.
     func advance() {
         switch mode {
         case .daily:
@@ -237,36 +235,43 @@ final class GameViewModel: ObservableObject {
             if let next = TutorialPuzzles.nextIndex(after: index), let level = TutorialPuzzles.level(at: next) {
                 mode = .tutorial(next)
                 currentDifficulty = level.difficulty
+                currentInfiniteCategory = nil
                 apply(puzzle: level.puzzle)
                 return
             }
             guard let env = environment else { return }
             mode = .infinite
-            startingDifficulty = .easy
-            currentDifficulty = .easy
-            infiniteClears = 0
             Task { @MainActor [weak self] in
-                let puzzle = await env.levelRepository.next(difficulty: .easy)
-                self?.apply(puzzle: puzzle)
+                await self?.loadNextInfinitePuzzle(using: env)
             }
         case .infinite:
             guard let env = environment else { return }
-            let difficulty = difficultyForClears(infiniteClears)
-            currentDifficulty = difficulty
             Task { @MainActor [weak self] in
-                let puzzle = await env.levelRepository.next(difficulty: difficulty)
-                self?.apply(puzzle: puzzle)
+                await self?.loadNextInfinitePuzzle(using: env)
             }
         }
     }
 
     // MARK: Helpers
 
-    private func difficultyForClears(_ clears: Int) -> Difficulty {
-        let tiers = Difficulty.allCases
-        let startIndex = tiers.firstIndex(of: startingDifficulty) ?? 0
-        let index = min(startIndex + clears / 3, tiers.count - 1)
-        return tiers[index]
+    private func loadNextInfinitePuzzle(using env: AppEnvironment) async {
+        let plan = InfiniteLevelProgression.plan(afterCompletedLevels: env.profile.totalLevelsCompleted)
+        currentDifficulty = plan.generatorDifficulty
+        currentInfiniteCategory = plan.category
+
+        let puzzle = await env.levelRepository.next(difficulty: plan.generatorDifficulty)
+        apply(puzzle: decorate(puzzle, with: plan))
+    }
+
+    private func decorate(_ puzzle: Puzzle, with plan: InfiniteLevelPlan) -> Puzzle {
+        Puzzle(
+            id: "\(puzzle.id)-level-\(plan.levelNumber)-\(plan.category.rawValue)",
+            title: plan.title,
+            initialBoard: puzzle.initialBoard,
+            goal: puzzle.goal,
+            parFolds: puzzle.parFolds,
+            solution: puzzle.solution
+        )
     }
 
     private func handleWin() {
@@ -298,11 +303,15 @@ final class GameViewModel: ObservableObject {
             )
             if Task.isCancelled { return }
             self.lastSummary = summary
-            if self.mode == .infinite { self.infiniteClears += 1 }
-
             await env.analytics.track(AnalyticsEvent(
                 "puzzle_complete",
-                parameters: ["folds": "\(folds)", "stars": "\(summary.stars)", "fragments": "\(summary.fragmentsEarned)"]
+                parameters: [
+                    "folds": "\(folds)",
+                    "stars": "\(summary.stars)",
+                    "fragments": "\(summary.fragmentsEarned)",
+                    "difficulty": difficulty.rawValue,
+                    "category": self.currentInfiniteCategory?.rawValue ?? "none"
+                ]
             ))
 
             try? await Task.sleep(nanoseconds: 1_400_000_000)
